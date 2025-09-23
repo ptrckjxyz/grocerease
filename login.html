@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GrocerEase • Sign in</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./logreg.css">
+</head>
+<body>
+  <div class="auth-shell">
+    <!-- Brand / Marketing side -->
+    <aside class="brand-panel">
+      <div class="brand-inner">
+        <div class="logo">
+          <span class="logo-mark"><b>GE</b></span>
+          <span>GrocerEase</span>
+        </div>
+        <h2 class="brand-title">Smart grocery management.</h2>
+        <p class="brand-sub">Plan meals, track inventory, and optimize your budget — all in one place.</p>
+        <ul class="brand-list">
+          <li><span class="dot"></span> Real‑time inventory & expiration tracking</li>
+          <li><span class="dot"></span> Smart meal suggestions from your pantry</li>
+          <li><span class="dot"></span> Cost analytics to reduce food waste</li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Form side -->
+    <main class="form-panel">
+      <section class="form-card" role="form" aria-labelledby="signin-title">
+        <header class="form-header">
+          <h1 id="signin-title">Welcome back</h1>
+          <p>Sign in to access your dashboard</p>
+        </header>
+
+        <form id="loginForm" novalidate>
+          <div class="input">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+            <div id="emailErr" class="error">Please enter a valid email.</div>
+          </div>
+
+          <div class="input">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Your password" autocomplete="current-password" required minlength="6">
+            <div id="passErr" class="error">Password must be at least 6 characters.</div>
+          </div>
+
+          <div class="actions">
+            <label class="checkbox">
+              <input type="checkbox" id="remember"> Remember me
+            </label>
+            <a href="#">Forgot password?</a>
+          </div>
+
+          <button class="btn btn-primary" type="submit">Sign in</button>
+          <div class="divider">or</div>
+          <button class="btn btn-ghost" type="button" onclick="alert('Social login wiring pending')">Continue with Google</button>
+        </form>
+
+        <p class="meta">New to GrocerEase? <a href="./register.html">Create an account</a></p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const email = document.getElementById('email');
+    const emailErr = document.getElementById('emailErr');
+    const password = document.getElementById('password');
+    const passErr = document.getElementById('passErr');
+
+    function validEmail(v){ return /[^\s@]+@[^\s@]+\.[^\s@]+/.test(v); }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      let ok = true;
+
+      if (!validEmail(email.value)) { emailErr.style.display = 'block'; ok = false; } else { emailErr.style.display = 'none'; }
+      if (password.value.length < 6) { passErr.style.display = 'block'; ok = false; } else { passErr.style.display = 'none'; }
+
+      if (ok) {
+        // Placeholder: replace with real auth call
+        alert('Signed in! Hook up to your backend to continue.');
+        // window.location.href = 'dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>
