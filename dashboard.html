@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GrocerEase • Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./dashboard.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">
+          <span class="logo-mark"><b>GE</b></span>
+          <span>GrocerEase</span>
+        </div>
+      </div>
+      <nav class="menu" aria-label="Main">
+        <a class="menu-item active" href="#" data-route="dashboard">
+          <span class="icon">🏠</span>
+          <span>Dashboard</span>
+        </a>
+        <div class="menu-section">Management</div>
+        <a class="menu-item" href="./grocery.html" data-route="grocery-list">
+          <span class="icon">🧾</span>
+          <span>Grocery List Management</span>
+        </a>
+        <a class="menu-item" href="#" data-route="meal-planning">
+          <span class="icon">🍳</span>
+          <span>Meal Planning & Recipe Suggestion</span>
+        </a>
+        <a class="menu-item" href="#" data-route="inventory">
+          <span class="icon">📦</span>
+          <span>Inventory & Expiration Tracking</span>
+        </a>
+        <a class="menu-item" href="#" data-route="budgeting">
+          <span class="icon">💲</span>
+          <span>Budgeting & Cost Optimization</span>
+        </a>
+        <div class="menu-section">Settings</div>
+        <button id="logoutBtn" class="menu-item" type="button">
+          <span class="icon">↪</span>
+          <span>Logout</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <h1>Dashboard</h1>
+        <div class="user-chip" title="Demo user">
+          <span class="name">Demo User</span>
+          <span class="avatar" aria-hidden="true"></span>
+        </div>
+      </header>
+      <p class="lede">Overview of your grocery management activities</p>
+
+      <section class="cards">
+        <article class="card" aria-labelledby="most-items-title">
+          <header class="card-head">
+            <div class="title-wrap">
+              <span class="emoji">📈</span>
+              <h2 id="most-items-title">Most Purchased Items</h2>
+            </div>
+            <button class="chip" data-action="sort-most">Sort</button>
+          </header>
+          <ul id="mostList" class="kv-list" aria-live="polite"></ul>
+        </article>
+
+        <article class="card" aria-labelledby="least-items-title">
+          <header class="card-head">
+            <div class="title-wrap">
+              <span class="emoji">📉</span>
+              <h2 id="least-items-title">Least Purchased Items</h2>
+            </div>
+            <button class="chip" data-action="sort-least">Sort</button>
+          </header>
+          <ul id="leastList" class="kv-list" aria-live="polite"></ul>
+        </article>
+
+        <article class="card" aria-labelledby="waste-title">
+          <header class="card-head">
+            <div class="title-wrap">
+              <span class="emoji warn">⚠️</span>
+              <h2 id="waste-title">Food Waste Statistics</h2>
+            </div>
+          </header>
+          <ul id="wasteList" class="kv-list waste" aria-live="polite"></ul>
+          <div class="total"><span>Total Waste Cost</span><b id="wasteTotal">$0.00</b></div>
+        </article>
+      </section>
+
+      <footer class="footnote">Front-end prototype. Data shown is mock and stored in-memory.</footer>
+    </main>
+  </div>
+
+  <!-- Logout Modal -->
+  <div id="logoutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-dialog">
+      <div class="modal-icon">!</div>
+      <h2 id="logoutTitle">Are you sure you want to log out?</h2>
+      <div class="modal-actions">
+        <button id="logoutCancel" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="logoutConfirm" class="btn btn-danger" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./dashboard.js"></script>
+</body>
+</html>
