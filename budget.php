@@ -222,100 +222,10 @@ switch ($action) {
 </body>
 </html>
 
-<?php
-include 'connection.php';
-session_start();
 
-if (!isset($_SESSION['user_id'])) {
-    die("unauthorized");
-}
 
-$user_id = $_SESSION['user_id'];
-$action = $_POST['action'] ?? $_GET['action'] ?? '';
+        
 
-switch ($action) {
-    case 'set_budget':
-        $start = $_POST['period_start'];
-        $end = $_POST['period_end'];
-        $limit = $_POST['budget_limit'];
-
-        $check = $conn->prepare("SELECT * FROM budgets WHERE user_id=? AND period_start=? AND period_end=?");
-        $check->bind_param("iss", $user_id, $start, $end);
-        $check->execute();
-        $res = $check->get_result();
-
-        if ($res->num_rows > 0) {
-            $stmt = $conn->prepare("UPDATE budgets SET budget_limit=? WHERE user_id=? AND period_start=? AND period_end=?");
-            $stmt->bind_param("diss", $limit, $user_id, $start, $end);
-            echo $stmt->execute() ? "budget_updated" : "error";
-        } else {
-            $stmt = $conn->prepare("INSERT INTO budgets (user_id, period_start, period_end, budget_limit) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("issd", $user_id, $start, $end, $limit);
-            echo $stmt->execute() ? "budget_added" : "error";
-        }
-        break;
-
-    case 'calculate_spending':
-        $start = $_GET['period_start'];
-        $end = $_GET['period_end'];
-
-        $query = $conn->prepare("SELECT SUM(price * quantity) AS total_spent FROM items WHERE user_id=? AND created_at BETWEEN ? AND ?");
-        $query->bind_param("iss", $user_id, $start, $end);
-        $query->execute();
-        $spent = $query->get_result()->fetch_assoc()['total_spent'] ?? 0;
-
-        $stmt = $conn->prepare("UPDATE budgets SET total_spent=? WHERE user_id=? AND period_start=? AND period_end=?");
-        $stmt->bind_param("diss", $spent, $user_id, $start, $end);
-        $stmt->execute();
-
-        echo json_encode(["total_spent" => $spent]);
-        break;
-
-    case 'get_budget_report':
-        $start = $_GET['period_start'];
-        $end = $_GET['period_end'];
-
-        $res = $conn->prepare("SELECT budget_limit, total_spent, (budget_limit - total_spent) AS remaining_budget FROM budgets WHERE user_id=? AND period_start=? AND period_end=?");
-        $res->bind_param("iss", $user_id, $start, $end);
-        $res->execute();
-        $data = $res->get_result()->fetch_assoc();
-
-        if (!$data) {
-            echo json_encode(["error" => "no_budget"]);
-            exit;
-        }
-
-        $limit = $data['budget_limit'];
-        $spent = $data['total_spent'];
-        $remaining = $data['remaining_budget'];
-
-        $suggestions = [];
-        if ($spent > $limit) {
-            $suggestions[] = "You exceeded your budget. Reduce non-essential items.";
-        } elseif ($spent > ($limit * 0.8)) {
-            $suggestions[] = "You're close to your budget. Consider cheaper alternatives.";
-        } else {
-            $suggestions[] = "Good job! You're managing your spending well.";
-        }
-
-        $category_query = $conn->prepare("SELECT category, SUM(price * quantity) AS total FROM items WHERE user_id=? AND created_at BETWEEN ? AND ? GROUP BY category ORDER BY total DESC LIMIT 3");
-        $category_query->bind_param("iss", $user_id, $start, $end);
-        $category_query->execute();
-        $categories = $category_query->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        echo json_encode([
-            "budget_limit" => $limit,
-            "total_spent" => $spent,
-            "remaining_budget" => $remaining,
-            "suggestions" => $suggestions,
-            "top_categories" => $categories
-        ]);
-        break;
-
-    default:
-        echo "invalid_action";
-}
-?>
 
 <!doctype html>
 <html lang="en">
@@ -323,45 +233,95 @@ switch ($action) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GrocerEase — Budget Optimization</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; background:#f4f4f4; }
+    .app { display:flex; min-height:100vh; }
+    .sidebar { width:220px; background:#1e1e2f; color:white; display:flex; flex-direction:column; }
+    .brand { padding:20px; display:flex; align-items:center; gap:10px; }
+    .logo { font-size:24px; font-weight:bold; background:#12b87a; width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:6px; }
+    .brand-text h1 { margin:0; font-size:18px; }
+    .brand-text small { font-size:12px; color:#bbb; }
+    .nav { flex-grow:1; display:flex; flex-direction:column; }
+    .nav-item { padding:15px 20px; text-decoration:none; color:white; display:flex; align-items:center; gap:10px; }
+    .nav-item.active { background:#12b87a; }
+    .nav-item:hover { background:#2e2e4f; }
+    .spacer { flex-grow:1; }
+    .main { flex-grow:1; padding:20px; }
+    .topbar h2 { margin:0; }
+    .subtitle { font-size:14px; color:#666; margin-top:5px; }
+    .cards { display:flex; gap:20px; flex-wrap:wrap; margin-top:20px; }
+    .card { background:white; flex:1; min-width:220px; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .card-head h3 { margin:0 0 10px 0; }
+    .price { font-size:24px; color:#12b87a; }
+    .budget-input { width:100%; padding:8px; margin-bottom:10px; border-radius:4px; border:1px solid #ccc; }
+    .btn { padding:8px 12px; background:#12b87a; color:white; border:none; border-radius:4px; cursor:pointer; }
+    .btn:hover { background:#0fa46a; }
+    .muted { color:#888; font-size:13px; }
+    .top-list { list-style:none; padding:0; margin:0; }
+    .top-list li { padding:5px 0; border-bottom:1px solid #eee; }
+    .muted-row { color:#aaa; font-style:italic; }
+  </style>
 </head>
-<body class="budget-fullscreen">
-  <header class="budget-topbar">
-    <a href="#" onclick="history.back()" class="back-btn">←</a>
-    <div>
-      <h2>Budget & Cost Optimization</h2>
-      <p class="subtitle">Track your total spending and find cheaper alternatives</p>
-    </div>
-  </header>
-
-  <main class="budget-main">
-    <section class="budget-cards">
-      <div class="card">
-        <div class="card-head"><h3>Total Grocery Cost</h3></div>
-        <div class="card-body"><strong id="totalCost" class="price">₱0.00</strong></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head"><h3>Set Budget</h3></div>
-        <div class="card-body">
-          <input type="number" id="budgetInput" placeholder="Enter budget amount" class="budget-input"/>
-          <button id="updateBudget" class="btn">Update Budget</button>
-          <p id="budgetStatus" class="muted"></p>
+<body>
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">G</div>
+        <div class="brand-text">
+          <h1>GrocerEase</h1>
+          <small>Smart Grocery & Meal Planner</small>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-head"><h3>Alternative Suggestions</h3></div>
-        <div class="card-body">
-          <ul id="altList" class="top-list"><li class="muted-row">No costly items detected</li></ul>
-        </div>
-      </div>
-    </section>
-  </main>
+      <nav class="nav">
+        <a href="#" class="nav-item">🏠 Dashboard</a>
+        <a href="#" class="nav-item">🧾 Grocery List Management</a>
+        <a href="#" class="nav-item">🍽️ Meal Planning</a>
+        <a href="#" class="nav-item">📦 Inventory</a>
+        <a href="#" class="nav-item active">💲 Budgeting & Cost Optimization</a>
+        <div class="spacer"></div>
+        <a href="#" class="nav-item">↩️ Logout</a>
+      </nav>
+    </aside>
 
-  <script src="script.js"></script>
+    <!-- MAIN -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2>Budget & Cost Optimization</h2>
+          <p class="subtitle">Track your total spending and find cheaper alternatives</p>
+        </div>
+      </header>
+
+      <section class="cards">
+        <div class="card">
+          <div class="card-head"><h3>Total Grocery Cost</h3></div>
+          <div class="card-body"><strong class="price">₱0.00</strong></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Set Budget</h3></div>
+          <div class="card-body">
+            <input type="number" placeholder="Enter budget amount" class="budget-input"/>
+            <button class="btn">Update Budget</button>
+            <p class="muted">Your budget status will appear here</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Alternative Suggestions</h3></div>
+          <div class="card-body">
+            <ul class="top-list"><li class="muted-row">No costly items detected</li></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>
+
+
 
 
 
