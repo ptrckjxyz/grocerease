@@ -99,501 +99,322 @@ switch ($action) {
 
 
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GrocerEase • Inventory & Expiration Tracking</title>
-
-  <!-- Google Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inventory & Expiration Tracking</title>
 
   <style>
     :root {
-      --line: #e5e7eb;
+      --bg: #ffffff;
+      --soft: #f3fff7;
+      --brand: #bfeedd;
+      --brand-600: #8fdab3;
+      --ink: #0f1720;
       --muted: #6b7280;
-      --brand: #1ae691;
-      --danger: #ef4444;
-      --warn: #f59e0b;
-      --ok: #16a34a;
-      --bg: #f9fafb;
-      --text: #111827;
+      --card: #fbfdfb;
+      --radius: 14px;
+      --shadow: 0 8px 30px rgba(16,24,40,0.06);
+      font-family: Inter, system-ui, "Segoe UI", Roboto;
+      color: var(--ink);
     }
 
-    * {
-      box-sizing: border-box;
-      font-family: "Inter", sans-serif;
-    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;background:linear-gradient(180deg,var(--bg),#f7fff8);}
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      min-height: 100vh;
-    }
-
-    .app-shell {
-      display: flex;
-      width: 100%;
-    }
+    .app{display:grid;grid-template-columns:270px 1fr;gap:22px;padding:26px;height:100vh;align-items:start;}
 
     /* Sidebar */
-    .sidebar {
-      width: 250px;
-      background: #fff;
-      border-right: 1px solid var(--line);
-      display: flex;
-      flex-direction: column;
-      padding: 24px 20px;
-    }
+    .sidebar{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);height:calc(100vh - 52px);position:sticky;top:26px;display:flex;flex-direction:column;}
+    .brand{display:flex;gap:12px;align-items:center;margin-bottom:20px;}
+    .logo{width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,var(--brand-600),var(--brand));display:flex;align-items:center;justify-content:center;font-weight:700;color:#063;box-shadow:0 8px 20px rgba(127,215,173,0.16);}
+    .brand-text h1{margin:0;font-size:18px;}
+    .brand-text small{color:var(--muted);font-size:12px;}
+    .nav{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;transition:all .18s ease;}
+    .nav-item:hover{background:var(--soft);}
+    .nav-item.active{background:linear-gradient(90deg,var(--brand-600),var(--brand));color:white;box-shadow:0 6px 18px rgba(127,215,173,0.14);}
+    .nav-item .icon{width:28px;text-align:center;}
+    .spacer{flex:1;}
+    .logout{border:1px solid rgba(0,0,0,0.06);padding:12px;border-radius:12px;}
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 800;
-      font-size: 1.4em;
-      margin-bottom: 24px;
-    }
+    /* Main */
+    .main{display:flex;flex-direction:column;gap:18px;height:100%;}
+    .topbar{display:flex;justify-content:space-between;align-items:center;}
+    .topbar h2{margin:0;}
+    .subtitle{color:var(--muted);font-size:13px;margin-bottom:12px;}
 
-    .brand img {
-      width: 38px;
-      height: 38px;
-    }
-
-    .menu {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .menu-section {
-      margin: 12px 0 6px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-
-    .menu-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      color: var(--text);
-      text-decoration: none;
-      transition: 0.2s;
-      background: transparent;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .menu-item:hover {
-      background: #f3f4f6;
-    }
-
-    .menu-item.active {
-      background: var(--brand);
-      color: #fff;
-    }
-
-    .icon {
-      font-size: 1.2em;
-    }
-
-    /* Main Content */
-    .main {
-      flex: 1;
-      padding: 32px;
-    }
-
-    .topbar h1 {
-      margin: 0;
-      font-size: 1.7rem;
-      font-weight: 800;
-    }
-
-    .lede {
-      color: var(--muted);
-      margin: 8px 0 20px;
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 16px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-
-    .btn-primary {
-      background: var(--brand);
-      color: #fff;
-    }
-
-    .btn-primary:hover {
-      background: #17ce7f;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid var(--line);
-      color: var(--text);
-    }
-
-    .btn-ghost:hover {
-      background: #f3f4f6;
-    }
-
-    /* Inventory Controls */
-    .inv-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .stat-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: #fff;
-      font-weight: 700;
-      color: #111;
-    }
-
-    .stat-pill .count {
-      background: #111;
-      color: #fff;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-    }
-
-    .stat-pill.warn {
-      border-color: #fde68a;
-      background: #fffbeb;
-    }
-
-    .stat-pill.danger {
-      border-color: #fecaca;
-      background: #fef2f2;
-    }
-
-    /* Alert */
-    .alert {
-      border: 1px solid #fecaca;
-      background: #fef2f2;
-      color: #991b1b;
-      padding: 10px 12px;
-      border-radius: 12px;
-      margin: 6px 0 12px;
-      font-weight: 700;
-    }
-
-    /* Inventory Grid */
-    .inv-grid {
+    /* Counter Bar */
+    .counter-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 10px;
     }
-
-    .inv-card {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 14px;
+    .counter-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       padding: 16px;
-      display: grid;
-      gap: 8px;
-      transition: transform 0.15s ease;
+      text-align: center;
+      transition: all 0.2s ease;
+      font-weight: 600;
+      color: var(--ink);
     }
-
-    .inv-card:hover {
-      transform: translateY(-2px);
+    .counter-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 22px rgba(16, 24, 40, 0.1);
     }
-
-    .inv-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .counter-card strong {
+      display: block;
+      font-size: 20px;
+      color: var(--brand-600);
+      margin-top: 4px;
     }
-
-    .inv-name {
-      font-weight: 800;
-      font-size: 1rem;
-    }
-
-    .badge {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 4px 8px;
-      font-size: 12px;
+    .counter-card.add {
+      background: linear-gradient(90deg,var(--brand-600),var(--brand));
+      color: #000;
+      cursor: pointer;
       font-weight: 700;
     }
-
-    .badge.ok {
-      color: #065f46;
-      border-color: #a7f3d0;
-      background: #ecfdf5;
+    .counter-card.add:hover {
+      opacity: 0.9;
     }
 
-    .badge.warn {
-      color: #7c2d12;
-      border-color: #fed7aa;
-      background: #fffbeb;
+    /* Table */
+    .table-container {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      overflow:auto;
     }
-
-    .badge.danger {
-      color: #7f1d1d;
-      border-color: #fecaca;
-      background: #fef2f2;
-    }
-
-    .inv-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .progress {
-      height: 8px;
-      background: #f3f4f6;
-      border-radius: 999px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
       overflow: hidden;
     }
-
-    .progress > span {
-      display: block;
-      height: 100%;
-      background: #111;
+    th, td {
+      text-align: left;
+      padding: 14px 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
     }
-
-    .card-actions {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .qty-ctrl {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .icon-btn {
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 8px;
-      padding: 6px 10px;
-      cursor: pointer;
-      font-weight: 700;
-    }
-
-    .icon-btn:hover {
-      border-color: #cbd5e1;
-      background: #f9fafb;
-    }
-
-    /* Form & Modal */
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 6px 0 10px;
-    }
-
-    .form-grid label {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-weight: 600;
+    th {
+      background: linear-gradient(90deg,var(--brand-600),var(--brand));
+      color: #000;
       font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-
-    .form-grid input {
-      padding: 10px 12px;
+    tr:hover { background-color: var(--soft); }
+    .btn {
+      background: linear-gradient(90deg,var(--brand-600),var(--brand));
+      border: none;
       border-radius: 10px;
-      border: 1px solid var(--line);
+      padding: 8px 12px;
+      color: #000;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 4px;
+    }
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid rgba(0,0,0,0.06);
+      color: var(--ink);
     }
 
-    .modal {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .modal.show {
-      display: flex;
-    }
-
-    .modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.3);
-    }
-
-    .modal-dialog {
-      position: relative;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      z-index: 10;
-      max-width: 480px;
-      width: 90%;
-    }
+    /* Modal */
+    .modal{display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:100;}
+    .modal.show{display:flex;}
+    .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.5);}
+    .modal-dialog{position:relative;background:#fff;width:520px;max-width:90%;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:1;}
+    .modal-header{background:linear-gradient(90deg,var(--brand-600),var(--brand));color:#000;padding:16px 20px;font-weight:800;font-size:18px;}
+    .modal-body{padding:20px;display:flex;flex-direction:column;gap:12px;}
+    .modal-body label{font-weight:600;font-size:14px;display:flex;flex-direction:column;gap:6px;}
+    .modal-body input,.modal-body select{padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.1);font-size:14px;}
+    .modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid rgba(0,0,0,0.05);}
   </style>
 </head>
 
 <body>
-  <div class="app-shell">
+  <div class="app">
+    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand">
-        <img src="./assets/logo.png" alt="GrocerEase logo" />
-        <span>GrocerEase</span>
+        <div class="logo">GE</div>
+        <div class="brand-text">
+          <h1>GrocerEase</h1>
+          <small>Smart Grocery Manager</small>
+        </div>
       </div>
-      <nav class="menu" aria-label="Main">
-        <a class="menu-item" href="./dashboard.html"><span class="icon">🏠</span>Dashboard</a>
-        <div class="menu-section">Management</div>
-        <a class="menu-item" href="./grocery.html"><span class="icon">🧾</span>Grocery List</a>
-        <a class="menu-item" href="./meal.html"><span class="icon">🍳</span>Meal Planning</a>
-        <a class="menu-item active" href="#"><span class="icon">📦</span>Inventory</a>
-        <a class="menu-item" href="./budgeting.html"><span class="icon">💲</span>Budgeting</a>
-        <div class="menu-section">Settings</div>
-        <button id="logoutBtn" class="menu-item" type="button"><span class="icon">↪</span>Logout</button>
+
+      <nav class="nav">
+        <a href="dashboard.php" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
+        <a href="items.php" class="nav-item"><span class="icon">🧾</span> Grocery List</a>
+        <a href="meal.html" class="nav-item"><span class="icon">🍳</span> Meal Planning</a>
+        <a href="#" class="nav-item active"><span class="icon">📦</span> Inventory</a>
+        <a href="budget.php" class="nav-item"><span class="icon">💲</span> Budgeting</a>
+        <div class="spacer"></div>
+        <a href="#" class="nav-item logout"><span class="icon">↪</span> Logout</a>
       </nav>
     </aside>
 
+    <!-- Main Content -->
     <main class="main">
-      <header class="topbar">
-        <h1>Inventory & Expiration Tracking</h1>
-      </header>
-      <p class="lede">Monitor your food inventory and track expiration dates</p>
+      <div class="topbar">
+        <h2>Inventory & Expiration Tracking</h2>
+      </div>
 
-      <div id="alertBar" class="alert" hidden></div>
+      <div class="subtitle">Monitor your food inventory and expiration dates easily.</div>
 
-      <section class="inv-controls">
-        <div class="stat-pill">Total Items <span id="invTotal" class="count">0</span></div>
-        <div class="stat-pill">Fresh Items <span id="invFresh" class="count">0</span></div>
-        <div class="stat-pill warn">Expiring Soon <span id="invSoon" class="count">0</span></div>
-        <div class="stat-pill danger">Expired <span id="invExpired" class="count">0</span></div>
-        <button id="addInvBtn" class="btn btn-primary">Add Item</button>
-      </section>
+      <!-- Counter Bar -->
+      <div class="counter-bar">
+        <div class="counter-card">
+          Total Items
+          <strong>0</strong>
+        </div>
+        <div class="counter-card">
+          Fresh
+          <strong>0</strong>
+        </div>
+        <div class="counter-card">
+          Expiring Soon
+          <strong>0</strong>
+        </div>
+        <div class="counter-card">
+          Expired
+          <strong>0</strong>
+        </div>
+        <div class="counter-card add" id="addItemBtn">+ Add Item</div>
+      </div>
 
-      <section id="invGrid" class="inv-grid"></section>
+      <div class="table-container">
+        <table id="inventoryTable">
+          <thead>
+            <tr>
+              <th>Item Name</th>
+              <th>Quantity</th>
+              <th>Category</th>
+              <th>Expiration Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+      </div>
     </main>
   </div>
 
-  <!-- Modals -->
-  <div id="invModal" class="modal" aria-hidden="true">
-    <div class="modal-backdrop" data-close></div>
-    <form id="invForm" class="modal-dialog">
-      <h2 id="invModalTitle">Add Inventory Item</h2>
-      <div class="form-grid">
-        <label>Name<input id="iName" required placeholder="e.g., Yogurt"></label>
-        <label>Category<input id="iCategory" placeholder="e.g., Dairy"></label>
-        <label>Quantity<input id="iQty" type="number" min="0" step="1" value="1" required></label>
-        <label>Unit<input id="iUnit" placeholder="e.g., pack"></label>
-        <label>Expiration<input id="iExpiry" type="date" required></label>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" data-close>Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
-      </div>
-    </form>
-  </div>
-
-  <div id="logoutModal" class="modal" aria-hidden="true">
+  <!-- Modal -->
+  <div class="modal" id="inventoryModal">
     <div class="modal-backdrop" data-close></div>
     <div class="modal-dialog">
-      <h2>Are you sure you want to log out?</h2>
+      <div class="modal-header">Add / Edit Item</div>
+      <div class="modal-body">
+        <label>Item Name<input type="text" id="itemName" /></label>
+        <label>Quantity<input type="number" id="itemQuantity" /></label>
+        <label>Category<input type="text" id="itemCategory" /></label>
+        <label>Expiration Date<input type="date" id="itemDate" /></label>
+      </div>
       <div class="modal-actions">
-        <button id="logoutCancel" class="btn btn-ghost">Cancel</button>
-        <button id="logoutConfirm" class="btn btn-danger">Logout</button>
+        <button class="btn ghost" data-close>Cancel</button>
+        <button class="btn" id="saveItemBtn">Save</button>
       </div>
     </div>
   </div>
 
   <script>
-    const INV_LS_KEY = 'ge_inventory_items_v1';
-    const $ = (s, r=document) => r.querySelector(s);
-    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+    const tableBody = document.getElementById('inventoryBody');
+    const modal = document.getElementById('inventoryModal');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const saveBtn = document.getElementById('saveItemBtn');
+    const inputs = {
+      name: document.getElementById('itemName'),
+      qty: document.getElementById('itemQuantity'),
+      cat: document.getElementById('itemCategory'),
+      date: document.getElementById('itemDate')
+    };
+    let editingIndex = null;
 
-    function readInv(){try{const raw=localStorage.getItem(INV_LS_KEY);const arr=raw?JSON.parse(raw):[];return Array.isArray(arr)?arr:[];}catch{return[];}}
-    function writeInv(items){localStorage.setItem(INV_LS_KEY,JSON.stringify(items));}
-    function daysUntil(d){try{const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/(1000*60*60*24));}catch{return NaN;}}
-    function classifyItem(it){const d=daysUntil(it.expiry);if(isNaN(d))return{state:'unknown',badge:'ok'};if(d<0)return{state:'expired',badge:'danger'};if(d<=3)return{state:'soon',badge:'warn'};return{state:'fresh',badge:'ok'};}
-    function calcStats(items){const s={total:items.length,fresh:0,soon:0,exp:0};items.forEach(i=>{const st=classifyItem(i).state;if(st==='fresh')s.fresh++;else if(st==='soon')s.soon++;else if(st==='expired')s.exp++;});return s;}
-    function formatDate(d){try{return new Date(d).toISOString().slice(0,10);}catch{return'';}}
+    function openModal() { modal.classList.add('show'); }
+    function closeModal() { modal.classList.remove('show'); clearInputs(); editingIndex = null; }
+    function clearInputs() { Object.values(inputs).forEach(i => i.value = ''); }
 
-    function render(){
-      const items=readInv();
-      const g=$('#invGrid');g.innerHTML='';
-      const {total,fresh,soon,exp}=calcStats(items);
-      $('#invTotal').textContent=total;$('#invFresh').textContent=fresh;$('#invSoon').textContent=soon;$('#invExpired').textContent=exp;
-      const alert=$('#alertBar');
-      if(exp>0||soon>0){alert.hidden=false;alert.textContent=`${exp} expired • ${soon} nearing expiration`;}else{alert.hidden=true;alert.textContent='';}
-      if(!items.length){const e=document.createElement('div');e.className='inv-card';e.style.textAlign='center';e.style.color='#6b7280';e.textContent='No inventory yet. Click Add Item to get started.';g.appendChild(e);return;}
-      items.sort((a,b)=>daysUntil(a.expiry)-daysUntil(b.expiry)).forEach(it=>{
-        const c=classifyItem(it);
-        const card=document.createElement('article');card.className='inv-card';
-        const qty=Number(it.qty)||0;
-        card.innerHTML=`<div class="inv-head"><div class="inv-name">${it.name}</div><span class="badge ${c.badge}">${c.state==='expired'?'Expired':c.state==='soon'?'Expiring Soon':'Fresh'}</span></div>
-        <div class="inv-meta"><span>${it.category||'Uncategorized'}</span><span>${it.expiry?'Exp: '+formatDate(it.expiry):'No expiration'}</span></div>
-        <div class="progress"><span style="width:${Math.min(100,qty*8)}%"></span></div>
-        <div class="card-actions"><div class="qty-ctrl"><button class="icon-btn" data-dec>−</button><b>${qty}</b><button class="icon-btn" data-inc>+</button><span style="color:#6b7280;font-size:12px">${it.unit||''}</span></div>
-        <div><button class="icon-btn" data-edit>✏️</button><button class="icon-btn" data-del>🗑️</button></div></div>
-        <div class="card-actions" style="justify-content:flex-end"><button class="icon-btn" data-use>Mark as Used</button></div>`;
-        $('[data-inc]',card).onclick=()=>{const n=readInv().map(x=>x.id===it.id?{...x,qty:x.qty+1}:x);writeInv(n);render();};
-        $('[data-dec]',card).onclick=()=>{const n=readInv().map(x=>x.id===it.id?{...x,qty:Math.max(0,x.qty-1)}:x);writeInv(n);render();};
-        $('[data-use]',card).onclick=()=>{const n=readInv().map(x=>x.id===it.id?{...x,qty:0}:x);writeInv(n);render();};
-        $('[data-edit]',card).onclick=()=>openEdit(it);
-        $('[data-del]',card).onclick=()=>{const n=readInv().filter(x=>x.id!==it.id);writeInv(n);render();};
-        g.appendChild(card);
+    document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal);
+    addItemBtn.onclick = openModal;
+
+    function loadInventory() {
+      const data = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+      renderTable(data);
+    }
+
+    function saveInventory(data) {
+      localStorage.setItem('inventoryData', JSON.stringify(data));
+    }
+
+    function renderTable(data) {
+      tableBody.innerHTML = '';
+      data.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        const now = new Date();
+        const expDate = new Date(item.date);
+        let status = 'Good';
+        if (expDate < now) status = 'Expired';
+        else if ((expDate - now) / (1000 * 60 * 60 * 24) <= 3) status = 'Expiring Soon';
+
+        tr.innerHTML = `
+          <td>${item.name}</td>
+          <td>${item.qty}</td>
+          <td>${item.cat}</td>
+          <td>${item.date}</td>
+          <td>${status}</td>
+          <td>
+            <button class="btn" onclick="editItem(${index})">✏️</button>
+            <button class="btn ghost" onclick="deleteItem(${index})">🗑️</button>
+          </td>`;
+        tableBody.appendChild(tr);
       });
     }
 
-    function showModal(el){el.classList.add('show');el.setAttribute('aria-hidden','false');}
-    function hideModal(el){el.classList.remove('show');el.setAttribute('aria-hidden','true');}
-    let editingId=null;
-    function openEdit(i){editingId=i?.id||null;$('#invModalTitle').textContent=i?'Edit Item':'Add Item';$('#iName').value=i?.name||'';$('#iCategory').value=i?.category||'';$('#iQty').value=i?.qty??1;$('#iUnit').value=i?.unit||'';$('#iExpiry').value=i?.expiry?new Date(i.expiry).toISOString().slice(0,10):'';showModal($('#invModal'));}
-    function init(){
-      $('#addInvBtn').onclick=()=>openEdit(null);
-      $('#invForm').onsubmit=e=>{e.preventDefault();const it={id:editingId||crypto.randomUUID(),name:$('#iName').value.trim(),category:$('#iCategory').value.trim(),qty:Math.max(0,parseInt($('#iQty').value||'0',10)),unit:$('#iUnit').value.trim(),expiry:$('#iExpiry').value};if(!it.name)return;const n=editingId?readInv().map(x=>x.id===editingId?{...x,...it}:x):[...readInv(),it];writeInv(n);hideModal($('#invModal'));render();};
-      $$('#invModal [data-close]').forEach(b=>b.onclick=()=>hideModal($('#invModal')));
-      document.onkeydown=e=>{if(e.key==='Escape'){hideModal($('#invModal'));hideModal($('#logoutModal'));}};
-      $('#logoutBtn').onclick=()=>{$('#logoutModal').classList.add('show');$('#logoutModal').setAttribute('aria-hidden','false');};
-      $('#logoutCancel').onclick=()=>hideModal($('#logoutModal'));
-      $('#logoutConfirm').onclick=()=>window.location.href='login.html';
-      render();
+    saveBtn.onclick = () => {
+      const newItem = {
+        name: inputs.name.value.trim(),
+        qty: inputs.qty.value,
+        cat: inputs.cat.value.trim(),
+        date: inputs.date.value
+      };
+      if (!newItem.name || !newItem.date) return;
+      const data = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+      if (editingIndex !== null) data[editingIndex] = newItem;
+      else data.push(newItem);
+      saveInventory(data);
+      renderTable(data);
+      closeModal();
+    };
+
+    function editItem(index) {
+      const data = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+      const item = data[index];
+      inputs.name.value = item.name;
+      inputs.qty.value = item.qty;
+      inputs.cat.value = item.cat;
+      inputs.date.value = item.date;
+      editingIndex = index;
+      openModal();
     }
-    window.onload=init;
+
+    function deleteItem(index) {
+      const data = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+      data.splice(index, 1);
+      saveInventory(data);
+      renderTable(data);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadInventory);
   </script>
 </body>
 </html>
