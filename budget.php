@@ -235,23 +235,14 @@ switch ($action) {
   <title>GrocerEase — Budget Optimization</title>
   <style>
     body { font-family: Arial, sans-serif; margin:0; background:#f4f4f4; }
-    .app { display:flex; min-height:100vh; }
-    .sidebar { width:220px; background:#1e1e2f; color:white; display:flex; flex-direction:column; }
-    .brand { padding:20px; display:flex; align-items:center; gap:10px; }
-    .logo { font-size:24px; font-weight:bold; background:#12b87a; width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:6px; }
-    .brand-text h1 { margin:0; font-size:18px; }
-    .brand-text small { font-size:12px; color:#bbb; }
-    .nav { flex-grow:1; display:flex; flex-direction:column; }
-    .nav-item { padding:15px 20px; text-decoration:none; color:white; display:flex; align-items:center; gap:10px; }
-    .nav-item.active { background:#12b87a; }
-    .nav-item:hover { background:#2e2e4f; }
-    .spacer { flex-grow:1; }
-    .main { flex-grow:1; padding:20px; }
-    .topbar h2 { margin:0; }
+    .container { max-width:900px; margin:0 auto; padding:20px; }
+    .header { display:flex; align-items:center; gap:15px; margin-bottom:20px; }
+    .back-arrow { font-size:24px; text-decoration:none; color:#12b87a; }
+    h1 { margin:0; font-size:24px; color:#333; }
     .subtitle { font-size:14px; color:#666; margin-top:5px; }
     .cards { display:flex; gap:20px; flex-wrap:wrap; margin-top:20px; }
-    .card { background:white; flex:1; min-width:220px; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    .card-head h3 { margin:0 0 10px 0; }
+    .card { background:white; flex:1; min-width:250px; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .card-head h3 { margin:0 0 10px 0; color:#333; }
     .price { font-size:24px; color:#12b87a; }
     .budget-input { width:100%; padding:8px; margin-bottom:10px; border-radius:4px; border:1px solid #ccc; }
     .btn { padding:8px 12px; background:#12b87a; color:white; border:none; border-radius:4px; cursor:pointer; }
@@ -263,65 +254,37 @@ switch ($action) {
   </style>
 </head>
 <body>
-  <div class="app">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">G</div>
-        <div class="brand-text">
-          <h1>GrocerEase</h1>
-          <small>Smart Grocery & Meal Planner</small>
+  <div class="container">
+    <div class="header">
+      <a href="#" class="back-arrow">←</a>
+      <div>
+        <h1>Budget & Cost Optimization</h1>
+        <p class="subtitle">Track your total spending and find cheaper alternatives</p>
+      </div>
+    </div>
+
+    <section class="cards">
+      <div class="card">
+        <div class="card-head"><h3>Total Grocery Cost</h3></div>
+        <div class="card-body"><strong class="price">₱0.00</strong></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Set Budget</h3></div>
+        <div class="card-body">
+          <input type="number" placeholder="Enter budget amount" class="budget-input"/>
+          <button class="btn">Update Budget</button>
+          <p class="muted">Your budget status will appear here</p>
         </div>
       </div>
 
-      <nav class="nav">
-        <a href="#" class="nav-item">🏠 Dashboard</a>
-        <a href="#" class="nav-item">🧾 Grocery List Management</a>
-        <a href="#" class="nav-item">🍽️ Meal Planning</a>
-        <a href="#" class="nav-item">📦 Inventory</a>
-        <a href="#" class="nav-item active">💲 Budgeting & Cost Optimization</a>
-        <div class="spacer"></div>
-        <a href="#" class="nav-item">↩️ Logout</a>
-      </nav>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-      <header class="topbar">
-        <div>
-          <h2>Budget & Cost Optimization</h2>
-          <p class="subtitle">Track your total spending and find cheaper alternatives</p>
+      <div class="card">
+        <div class="card-head"><h3>Alternative Suggestions</h3></div>
+        <div class="card-body">
+          <ul class="top-list"><li class="muted-row">No costly items detected</li></ul>
         </div>
-      </header>
-
-      <section class="cards">
-        <div class="card">
-          <div class="card-head"><h3>Total Grocery Cost</h3></div>
-          <div class="card-body"><strong class="price">₱0.00</strong></div>
-        </div>
-
-        <div class="card">
-          <div class="card-head"><h3>Set Budget</h3></div>
-          <div class="card-body">
-            <input type="number" placeholder="Enter budget amount" class="budget-input"/>
-            <button class="btn">Update Budget</button>
-            <p class="muted">Your budget status will appear here</p>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-head"><h3>Alternative Suggestions</h3></div>
-          <div class="card-body">
-            <ul class="top-list"><li class="muted-row">No costly items detected</li></ul>
-          </div>
-        </div>
-      </section>
-    </main>
+      </div>
+    </section>
   </div>
 </body>
 </html>
-
-
-
-
-
