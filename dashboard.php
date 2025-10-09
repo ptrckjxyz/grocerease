@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // --- Top purchased items ---
-$insertStatement = $conn->prepare("
+$topStmt = $conn->prepare("
     SELECT item_name, SUM(quantity) AS total_bought
     FROM items
     WHERE user_id = ?
@@ -18,9 +18,9 @@ $insertStatement = $conn->prepare("
     ORDER BY total_bought DESC
     LIMIT 5
 ");
-$insertStatement->bind_param("i", $user_id);
-$insertStatement->execute();
-$topResult = $insertStatement->get_result();
+$topStmt->bind_param("i", $user_id);
+$topStmt->execute();
+$topResult = $topStmt->get_result();
 
 $topItems = [];
 $topQty = [];
@@ -28,10 +28,10 @@ while ($row = $topResult->fetch_assoc()) {
     $topItems[] = $row['item_name'];
     $topQty[] = $row['total_bought'];
 }
-$insertStatement->close();
+$topStmt->close();
 
 // --- Least purchased items ---
-$insertStatement = $conn->prepare("
+$leastStmt = $conn->prepare("
     SELECT item_name, SUM(quantity) AS total_bought
     FROM items
     WHERE user_id = ?
@@ -39,9 +39,9 @@ $insertStatement = $conn->prepare("
     ORDER BY total_bought ASC
     LIMIT 5
 ");
-$insertStatement->bind_param("i", $user_id);
-$insertStatement->execute();
-$leastResult = $insertStatement->get_result();
+$leastStmt->bind_param("i", $user_id);
+$leastStmt->execute();
+$leastResult = $leastStmt->get_result();
 
 $leastItems = [];
 $leastQty = [];
@@ -49,31 +49,31 @@ while ($row = $leastResult->fetch_assoc()) {
     $leastItems[] = $row['item_name'];
     $leastQty[] = $row['total_bought'];
 }
-$insertStatement->close();
+$leastStmt->close();
 
 // --- Expired items count ---
-$insertStatement = $conn->prepare("
+$expiredStmt = $conn->prepare("
     SELECT COUNT(*) AS expired_items
     FROM items
     WHERE user_id = ? AND expiration_date < CURDATE()
 ");
-$insertStatement->bind_param("i", $user_id);
-$insertStatement->execute();
-$expiredResult = $insertStatement->get_result();
-$expiredCount = $expiredResult->fetch_assoc()['expired_items'];
-$insertStatement->close();
+$expiredStmt->bind_param("i", $user_id);
+$expiredStmt->execute();
+$expiredResult = $expiredStmt->get_result();
+$expiredCount = $expiredResult->fetch_assoc()['expired_items'] ?? 0;
+$expiredStmt->close();
 
 // --- Spending summary ---
-$insertStatement = $conn->prepare("
+$spendingStmt = $conn->prepare("
     SELECT SUM(price * quantity) AS total_spent
     FROM items
     WHERE user_id = ?
 ");
-$insertStatement->bind_param("i", $user_id);
-$insertStatement->execute();
-$spendingResult = $insertStatement->get_result();
-$totalSpent = $spendingResult->fetch_assoc()['total_spent'];
-$insertStatement->close();
+$spendingStmt->bind_param("i", $user_id);
+$spendingStmt->execute();
+$spendingResult = $spendingStmt->get_result();
+$totalSpent = $spendingResult->fetch_assoc()['total_spent'] ?? 0;
+$spendingStmt->close();
 ?>
 
 <!doctype html>
@@ -85,7 +85,7 @@ $insertStatement->close();
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app">
@@ -100,24 +100,24 @@ $insertStatement->close();
       </div>
 
       <nav class="nav">
-        <a href="dashboard.html" class="nav-item active">
+        <a href="dashboard.php" class="nav-item active">
           <span class="icon">🏠</span><span>Dashboard</span>
         </a>
-        <a href="#" class="nav-item">
+        <a href="items.php" class="nav-item">
           <span class="icon">🧾</span><span>Grocery List Management</span>
         </a>
-        <a href="#" class="nav-item">
+        <a href="recipes.php" class="nav-item">
           <span class="icon">🍽️</span><span>Meal Planning</span>
         </a>
-        <a href="#" class="nav-item">
+        <a href="inventory.php" class="nav-item">
           <span class="icon">📦</span><span>Inventory</span>
         </a>
-        <a href="budget.html" class="nav-item">
+        <a href="budget.php" class="nav-item">
           <span class="icon">💲</span><span>Budgeting & Cost Optimization</span>
         </a>
 
         <div class="spacer"></div>
-        <a href="#" class="nav-item logout"><span class="icon">↩️</span><span>Logout</span></a>
+        <a href="logout.php" class="nav-item logout"><span class="icon">↩️</span><span>Logout</span></a>
       </nav>
     </aside>
 
@@ -128,7 +128,6 @@ $insertStatement->close();
           <h2>Dashboard</h2>
           <p class="subtitle">Overview of your grocery management activities</p>
         </div>
-        <!-- Demo User removed -->
       </header>
 
       <section class="cards">
@@ -147,7 +146,15 @@ $insertStatement->close();
             <h3>Least Purchased Items</h3>
           </div>
           <div class="card-body">
-            <div class="placeholder">No items yet</div>
+            <?php if (count($leastItems) > 0): ?>
+              <ul>
+                <?php foreach ($leastItems as $index => $item): ?>
+                  <li><?= htmlspecialchars($item) ?> — <?= $leastQty[$index] ?></li>
+                <?php endforeach; ?>
+              </ul>
+            <?php else: ?>
+              <div class="placeholder">No items yet</div>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -156,10 +163,10 @@ $insertStatement->close();
             <h3>Food Waste Statistics</h3>
           </div>
           <div class="card-body small">
-            <p class="muted">No items yet</p>
+            <p class="muted">Expired items: <?= $expiredCount ?></p>
             <div class="waste-row">
               <span>Total Waste Cost</span>
-              <strong class="price">₱0.00</strong>
+              <strong class="price">₱<?= number_format($totalSpent, 2) ?></strong>
             </div>
           </div>
         </div>
@@ -189,7 +196,13 @@ $insertStatement->close();
         <div class="panel small-panel">
           <h4>Top Purchased List</h4>
           <ol id="topList" class="top-list">
-            <li class="muted-row">No items yet</li>
+            <?php if (count($topItems) > 0): ?>
+              <?php foreach ($topItems as $index => $item): ?>
+                <li><?= htmlspecialchars($item) ?> — <?= $topQty[$index] ?></li>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <li class="muted-row">No items yet</li>
+            <?php endif; ?>
           </ol>
         </div>
       </section>
@@ -199,5 +212,3 @@ $insertStatement->close();
   <script src="script.js"></script>
 </body>
 </html>
-
-
