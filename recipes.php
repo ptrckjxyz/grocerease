@@ -145,215 +145,300 @@ switch ($action) {
 
 
 
-
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GrocerEase • Meal Planning & Recipe Suggestions</title>
+  <title>🍽️ Meal Planning & Recipe Suggestions</title>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
-    :root {
-      --line: #e5e7eb;
-      --muted: #6b7280;
-      --brand: #1ae691;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top left, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+      color: #0f1720;
+    }
+
+    .container {
+      max-width: 1300px;
+      width: 100%;
+      margin: 20px auto;
+      background: #ffffff;
+      border-radius: 25px;
+      box-shadow: 0 10px 35px rgba(76, 175, 80, 0.15);
+      padding: 60px 50px;
+      border: 1px solid #c8e6c9;
+    }
+
+    .header-glow {
+      background: linear-gradient(135deg, #c8f7d1, #b2eabf);
+      border-radius: 18px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-glow h1 {
+      color: #2e7d32;
+      font-size: 2.2rem;
+      font-weight: 800;
       margin: 0;
-      background: #f9fafb;
-      color: #111827;
     }
-    .app-shell { display: flex; min-height: 100vh; }
-    .sidebar {
-      width: 260px; background: #fff;
-      border-right: 1px solid var(--line);
-      display: flex; flex-direction: column;
-      padding: 16px;
-    }
-    .brand .logo {
-      display: flex; align-items: center;
-      font-weight: 800; font-size: 20px;
-      gap: 8px; margin-bottom: 24px;
-    }
-    .logo-img { width: 32px; height: 32px; }
-    .menu { display: flex; flex-direction: column; gap: 4px; }
-    .menu-section {
-      margin: 12px 0 4px; font-size: 12px;
-      font-weight: 700; color: var(--muted); text-transform: uppercase;
-    }
-    .menu-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 8px;
-      text-decoration: none; color: #111827; font-weight: 600;
-    }
-    .menu-item:hover { background: #f3f4f6; }
-    .menu-item.active { background: var(--brand); color: #000; }
 
-    .main { flex: 1; padding: 24px; overflow-y: auto; }
-    .topbar h1 { margin: 0; font-size: 24px; font-weight: 800; }
-    .lede { color: var(--muted); margin-top: 4px; margin-bottom: 20px; }
+    .header-glow::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -80%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0) 100%);
+      transform: rotate(25deg);
+      animation: shimmer 3s infinite linear;
+    }
 
-    .tabs { display: flex; gap: 8px; align-items: center; margin: 8px 0 16px; }
+    @keyframes shimmer {
+      0% { transform: translateX(-150%) rotate(25deg); }
+      100% { transform: translateX(150%) rotate(25deg); }
+    }
+
+    .back-arrow {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 45px;
+      height: 45px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      color: #388e3c;
+      font-size: 20px;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .back-arrow:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .subtitle { color: #4e7d4a; text-align:center; margin-bottom: 22px; font-size: 1.05rem; }
+
+    .tabs {
+      display:flex;
+      justify-content:center;
+      gap:12px;
+      margin-bottom: 25px;
+    }
+
     .tab {
-      border: 1px solid var(--line); background: #fff; border-radius: 999px;
-      padding: 8px 14px; font-weight: 700; cursor: pointer;
-    }
-    .tab.active { background: var(--brand); box-shadow: 0 0 0 4px rgba(26,230,145,.25); }
-    .tabs .spacer { flex: 1; }
-
-    /* Recipe Suggestion Cards */
-    .cards.three { 
-      display: grid; 
-      grid-template-columns: repeat(3, minmax(220px, 1fr)); 
-      gap: 16px; 
-      align-items: start; 
-    }
-    .cards.three article {
-      background: linear-gradient(135deg, #d8f6e1, #f4fff9);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-    .sug-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-    .sug-item {
-      border: 1px solid var(--line); border-radius: 10px;
-      padding: 10px 12px; background: #fff; cursor: pointer;
-    }
-    .sug-item:hover { border-color: #cbd5e1; transform: translateY(-2px); transition: all 0.15s ease; }
-    .sug-item .title { font-weight: 700; }
-    .sug-item .meta { color: var(--muted); font-size: 12px; }
-    .footnote { color: var(--muted); margin-top: 16px; }
-
-    .planner-grid { display: grid; grid-template-columns: repeat(3, minmax(280px, 1fr)); gap: 16px; }
-    .day-card {
-      background: #fff; border: 1px solid var(--line);
-      border-radius: 14px; padding: 12px; display: flex; flex-direction: column;
-    }
-    .day-head {
-      display: flex; align-items: center; justify-content: space-between;
-      font-weight: 800; margin-bottom: 8px;
-    }
-    .add-day-btn {
-      border: none; background: var(--brand); color: #000;
-      border-radius: 50%; width: 34px; height: 34px;
-      font-size: 20px; font-weight: bold; cursor: pointer;
-    }
-    .meal {
-      border: 1px dashed var(--line); border-radius: 12px;
-      padding: 10px; margin-bottom: 8px;
-    }
-    .meal h3 { margin: 0 0 6px; font-size: 14px; }
-    .meal-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
-    .meal-item {
-      display: flex; align-items: center; justify-content: space-between;
-      border: 1px solid var(--line); border-radius: 10px;
-      padding: 8px 10px; background: #fff;
-    }
-    .meal-item .name { font-weight: 600; cursor: pointer; }
-    .meal-item input {
-      border: 1px solid var(--line); border-radius: 6px;
-      padding: 6px; width: 100%;
-    }
-    .meal-item .actions { display: inline-flex; gap: 6px; }
-    .icon-btn {
-      border: 1px solid var(--line); background: #fff;
-      border-radius: 8px; padding: 6px; cursor: pointer;
+      border: 2px solid #a5d6a7;
+      background: white;
+      border-radius: 35px;
+      padding: 10px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-size: 1rem;
     }
 
-    /* Modal Styling */
-    .modal {
-      display: none; position: fixed; inset: 0;
-      align-items: center; justify-content: center; z-index: 100;
+    .tab.active {
+      background: linear-gradient(135deg,#81c784,#66bb6a);
+      color: #fff;
+      border: none;
+      box-shadow: 0 0 10px rgba(102,187,106,0.25);
     }
-    .modal.show { display: flex; }
-    .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
-    .modal-dialog {
-      position: relative; background: #fff;
-      width: 520px; max-width: 90%;
-      border-radius: 14px; overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      z-index: 1;
+
+    .cards.three {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
     }
-    .modal-header {
-      background: var(--brand);
-      color: #000; padding: 16px 20px;
-      font-weight: 800; font-size: 18px;
-    }
-    .modal-body {
+
+    .card {
+      background: #f9fff9;
+      border-radius: 14px;
       padding: 20px;
-      display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+      border: 1px solid #c8e6c9;
     }
-    .modal-body label {
-      font-weight: 600; font-size: 14px;
-      display: flex; flex-direction: column; gap: 6px;
+
+    .sug-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .sug-item {
+      border: 1px solid #d4edda;
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: white;
+      cursor: pointer;
+      transition: transform .12s ease, border-color .12s ease;
     }
+
+    .sug-item:hover { border-color: #81c784; transform: translateY(-2px); }
+    .sug-item .title { font-weight:700; }
+    .sug-item .meta { color: #6b7280; font-size: 13px; }
+
+    .planner-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 12px;
+    }
+
+    .day-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 5px 18px rgba(76,175,80,0.07);
+      border: 1px solid #c8e6c9;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .day-head { display:flex; justify-content:space-between; align-items:center; font-weight:800; margin-bottom:10px; font-size:1.1rem; }
+
+    .add-day-btn {
+      border: none;
+      background: linear-gradient(135deg,#81c784,#66bb6a);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor:pointer;
+    }
+
+    .meal { border: 1px dashed rgba(0,0,0,0.08); border-radius:10px; padding: 12px; margin-bottom:10px; }
+    .meal h3 { margin:0 0 8px 0; font-size: 15px; }
+    .meal-list { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+    .meal-item { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); background:#fff; }
+    .meal-item .name { font-weight:600; cursor:pointer; font-size: 14px; }
+    .icon-btn { border:1px solid rgba(0,0,0,0.06); padding:6px; border-radius:8px; background:#fff; cursor:pointer; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .modal.show { display: flex; }
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(1px);
+    }
+
+    .modal-dialog {
+      position: relative;
+      background: #fff;
+      width: 550px;
+      max-width: 95%;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      z-index: 2001;
+    }
+
+    .modal-header {
+      background: linear-gradient(90deg,#81c784,#66bb6a);
+      color: #000;
+      padding: 18px 20px;
+      font-weight: 800;
+      font-size: 19px;
+    }
+
+    .modal-body {
+      padding: 20px 22px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .modal-body label { font-weight:600; font-size:14px; display:flex; flex-direction:column; gap:8px; }
     .modal-body input, .modal-body select {
-      padding: 10px 12px;
-      border-radius: 10px; border: 1px solid var(--line);
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: 1px solid #e6e6e6;
       font-size: 14px;
     }
+
     .modal-actions {
-      display: flex; justify-content: flex-end; gap: 10px;
-      padding: 16px 20px; border-top: 1px solid var(--line);
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      padding: 14px 18px;
+      border-top: 1px solid #f1f1f1;
     }
-    .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .btn-primary { background: var(--brand); }
-    .btn-ghost { background: #f3f4f6; }
+
+    .btn {
+      background: linear-gradient(90deg,#81c784,#66bb6a);
+      color:#fff;
+      border:none;
+      padding:10px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid rgba(0,0,0,0.08);
+      color: #333;
+    }
+
+    @media (max-width: 900px) {
+      .cards.three { grid-template-columns: 1fr; }
+      .planner-grid { grid-template-columns: 1fr; }
+      .container { padding: 40px 20px; }
+    }
   </style>
 </head>
 
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">
-          <img class="logo-img" src="./assets/logo.png" alt="GrocerEase logo" />
-          <span>GrocerEase</span>
-        </div>
+  <a href="dashboard.php" class="back-arrow" title="Back to Dashboard"><i class="fas fa-arrow-left"></i></a>
+
+  <div class="container">
+    <div class="header-glow">
+      <h1>🍽️ Meal Planning & Recipe Suggestions</h1>
+    </div>
+
+    <p class="subtitle">Plan your week and discover new meals using smart suggestions.</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="suggestions">Recipe Suggestions</button>
+      <button class="tab" data-tab="planner">Weekly Meal Planner</button>
+    </div>
+
+    <section id="suggestionsView">
+      <div class="cards three">
+        <article class="card"><h2>🍳 Breakfast</h2><ul id="sugBreakfast" class="sug-list"></ul></article>
+        <article class="card"><h2>🥗 Lunch</h2><ul id="sugLunch" class="sug-list"></ul></article>
+        <article class="card"><h2>🍝 Dinner</h2><ul id="sugDinner" class="sug-list"></ul></article>
       </div>
-      <nav class="menu" aria-label="Main">
-        <a class="menu-item" href="./dashboard.html"><span>🏠</span>Dashboard</a>
-        <div class="menu-section">Management</div>
-        <a class="menu-item" href="./grocery.html"><span>🧾</span>Grocery List</a>
-        <a class="menu-item active" href="#"><span>🍳</span>Meal Planning</a>
-        <a class="menu-item" href="./inventory.html"><span>📦</span>Inventory</a>
-        <a class="menu-item" href="#"><span>💲</span>Budgeting</a>
-        <div class="menu-section">Settings</div>
-        <button id="logoutBtn" class="menu-item" type="button"><span>↪</span>Logout</button>
-      </nav>
-    </aside>
+      <p class="subtitle">Tip: Click a recipe to add it to the planner.</p>
+    </section>
 
-    <main class="main">
-      <header class="topbar"><h1>Meal Planning & Recipe Suggestions</h1></header>
-      <p class="lede">Plan your week and discover new meals using smart suggestions.</p>
-
-      <div class="tabs">
-        <button class="tab active" data-tab="suggestions">Recipe Suggestions</button>
-        <button class="tab" data-tab="planner">Weekly Meal Planner</button>
-        <div class="spacer"></div>
-      </div>
-
-      <section id="suggestionsView">
-        <div class="cards three">
-          <article><h2>🍳 Breakfast</h2><ul id="sugBreakfast" class="sug-list"></ul></article>
-          <article><h2>🥗 Lunch</h2><ul id="sugLunch" class="sug-list"></ul></article>
-          <article><h2>🍝 Dinner</h2><ul id="sugDinner" class="sug-list"></ul></article>
-        </div>
-        <p class="footnote">Tip: Click a recipe to add it to the planner.</p>
-      </section>
-
-      <section id="plannerView" hidden>
-        <div id="plannerGrid" class="planner-grid"></div>
-      </section>
-    </main>
+    <section id="plannerView" hidden>
+      <div id="plannerGrid" class="planner-grid"></div>
+    </section>
   </div>
 
   <script>
@@ -369,17 +454,24 @@ switch ($action) {
       Dinner:[{name:'Salmon Teriyaki',meta:'30m • Salmon • Teriyaki • Rice'},{name:'Pasta Primavera',meta:'30m • Pasta • Veggies • Parmesan'},{name:'Beef Tacos',meta:'25m • Beef • Tortillas • Salsa'}]
     };
 
-    function readPlanner(){try{const d=JSON.parse(localStorage.getItem(MP_LS_KEY))||{};
-      for(const day of DAYS){d[day]??={};for(const m of MEALS)d[day][m]??=[];}return d;}
-      catch{return Object.fromEntries(DAYS.map(d=>[d,{Breakfast:[],Lunch:[],Dinner:[]}]))}}
-    function writePlanner(p){localStorage.setItem(MP_LS_KEY,JSON.stringify(p));}
+    function readPlanner(){
+      try {
+        const d = JSON.parse(localStorage.getItem(MP_LS_KEY)) || {};
+        for(const day of DAYS){ d[day] ??= {}; for(const m of MEALS) d[day][m] ??= []; }
+        return d;
+      } catch {
+        return Object.fromEntries(DAYS.map(d=>[d,{Breakfast:[],Lunch:[],Dinner:[]}]));
+      }
+    }
+
+    function writePlanner(p){ localStorage.setItem(MP_LS_KEY, JSON.stringify(p)); }
 
     function renderSuggestions(){
       const map={Breakfast:$('#sugBreakfast'),Lunch:$('#sugLunch'),Dinner:$('#sugDinner')};
       for(const meal in RECIPES){
         map[meal].innerHTML='';
         RECIPES[meal].forEach(r=>{
-          const li=document.createElement('li');li.className='sug-item';
+          const li=document.createElement('li'); li.className='sug-item';
           li.innerHTML=`<div class="title">${r.name}</div><div class="meta">${r.meta}</div>`;
           li.onclick=()=>openAddMealModal(null,r.name,meal,true);
           map[meal].appendChild(li);
@@ -388,13 +480,13 @@ switch ($action) {
     }
 
     function renderPlanner(){
-      const grid=$('#plannerGrid');grid.innerHTML='';
+      const grid=$('#plannerGrid'); grid.innerHTML='';
       const p=readPlanner();
       DAYS.forEach(day=>{
-        const card=document.createElement('article');card.className='day-card';
+        const card=document.createElement('article'); card.className='day-card';
         card.innerHTML=`<div class="day-head"><span>${day}</span><button class="add-day-btn" title="Add meal">+</button></div>`;
         MEALS.forEach(meal=>{
-          const sec=document.createElement('section');sec.className='meal';
+          const sec=document.createElement('section'); sec.className='meal';
           sec.innerHTML=`<h3>${meal}</h3><ul class="meal-list"></ul>`;
           const ul=$('.meal-list',sec);
           (p[day][meal]||[]).forEach((n,i)=>ul.appendChild(makeMealItem(day,meal,n,i)));
@@ -406,45 +498,65 @@ switch ($action) {
     }
 
     function makeMealItem(day,meal,name,i){
-      const li=document.createElement('li');li.className='meal-item';
+      const li=document.createElement('li'); li.className='meal-item';
       li.innerHTML=`<span class="name">${name}</span><span class="actions"><button class="icon-btn">🗑️</button></span>`;
       const nameEl=$('.name',li);
       nameEl.onclick=()=>{
-        const input=document.createElement('input');input.value=name;nameEl.replaceWith(input);input.focus();
-        input.onblur=()=>save(input.value);input.onkeydown=e=>{if(e.key==='Enter')save(input.value);};
-        function save(v){const p=readPlanner();p[day][meal][i]=v.trim()||name;writePlanner(p);renderPlanner();}
+        const input=document.createElement('input'); input.value=name; nameEl.replaceWith(input); input.focus();
+        input.onblur=()=>save(input.value); input.onkeydown=e=>{ if(e.key==='Enter') save(input.value); };
+        function save(v){ const p=readPlanner(); p[day][meal][i]=v.trim()||name; writePlanner(p); renderPlanner(); }
       };
-      $('.icon-btn',li).onclick=()=>{const p=readPlanner();p[day][meal].splice(i,1);writePlanner(p);renderPlanner();};
+      $('.icon-btn',li).onclick=()=>{ const p=readPlanner(); p[day][meal].splice(i,1); writePlanner(p); renderPlanner(); };
       return li;
     }
 
-    function openAddMealModal(day,preName='',preType='Breakfast',fromSuggestion=false){
-      const today=new Date().toLocaleDateString('en-US',{weekday:'long'});
-      const m=document.createElement('div');m.className='modal show';
-      m.innerHTML=`
+    // ✅ Modal: "Day" field only for Recipe Suggestions
+    function openAddMealModal(day, preName = '', preType = 'Breakfast', fromSuggestion = false) {
+      const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+      const m = document.createElement('div');
+      m.className = 'modal show';
+
+      const dayField = fromSuggestion
+        ? `<label>Day
+            <select id="mealDay">
+              ${DAYS.map(d => `<option ${d === today ? 'selected' : ''}>${d}</option>`).join('')}
+            </select>
+          </label>`
+        : '';
+
+      m.innerHTML = `
         <div class="modal-backdrop" data-close></div>
         <div class="modal-dialog">
-          <div class="modal-header">${fromSuggestion?'Add to Planner':day?`Add Meal for ${day}`:'Add to Planner'}</div>
+          <div class="modal-header">${fromSuggestion ? 'Add to Planner' : day ? `Add Meal for ${day}` : 'Add to Planner'}</div>
           <div class="modal-body">
-            <label>Day<select id="mealDay">${DAYS.map(d=>`<option ${d===today?'selected':''}>${d}</option>`).join('')}</select></label>
-            ${!fromSuggestion?`<label>Meal Type<select id="mealType">${MEALS.map(x=>`<option ${x===preType?'selected':''}>${x}</option>`).join('')}</select></label>`:''}
-            <label>Meal Name<input id="mealName" value="${preName}" placeholder="e.g. Chicken Curry"/></label>
+            ${dayField}
+            ${!fromSuggestion ? `
+              <label>Meal Type
+                <select id="mealType">
+                  ${MEALS.map(x => `<option ${x === preType ? 'selected' : ''}>${x}</option>`).join('')}
+                </select>
+              </label>` : ''}
+            <label>Meal Name
+              <input id="mealName" value="${preName}" placeholder="e.g. Chicken Curry"/>
+            </label>
           </div>
           <div class="modal-actions">
-            <button class="btn btn-ghost" data-close>Cancel</button>
-            <button id="addConfirm" class="btn btn-primary">Add</button>
+            <button class="btn ghost" data-close>Cancel</button>
+            <button id="addConfirm" class="btn">Add</button>
           </div>
         </div>`;
+
       document.body.appendChild(m);
-      const close=()=>m.remove();
-      m.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);
-      m.querySelector('.modal-backdrop').onclick=close;
-      $('#addConfirm',m).onclick=()=>{
-        const d=$('#mealDay',m).value;
-        const type=fromSuggestion?preType:$('#mealType',m).value;
-        const name=$('#mealName',m).value.trim();
-        if(!name)return;
-        const p=readPlanner();
+      const close = () => m.remove();
+      m.querySelectorAll('[data-close]').forEach(b => b.onclick = close);
+      m.querySelector('.modal-backdrop').onclick = close;
+
+      $('#addConfirm', m).onclick = () => {
+        const d = fromSuggestion ? $('#mealDay', m).value : day;
+        const type = fromSuggestion ? preType : $('#mealType', m).value;
+        const name = $('#mealName', m).value.trim();
+        if (!name) return;
+        const p = readPlanner();
         p[d][type].push(name);
         writePlanner(p);
         close();
@@ -454,14 +566,20 @@ switch ($action) {
     }
 
     function switchTab(which){
-      const sug=which==='suggestions';
-      $('#suggestionsView').hidden=!sug;$('#plannerView').hidden=sug;
+      const sug = which === 'suggestions';
+      $('#suggestionsView').hidden = !sug;
+      $('#plannerView').hidden = sug;
       $$('.tab').forEach(t=>t.classList.remove('active'));
       $(`.tab[data-tab="${which}"]`).classList.add('active');
-      if(!sug)renderPlanner();
+      if(!sug) renderPlanner();
     }
 
-    document.addEventListener('DOMContentLoaded',()=>{renderSuggestions();renderPlanner();$$('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));});
+    document.addEventListener('DOMContentLoaded', ()=>{
+      renderSuggestions();
+      renderPlanner();
+      $$('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));
+    });
   </script>
 </body>
 </html>
+
