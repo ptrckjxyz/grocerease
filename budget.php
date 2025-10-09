@@ -133,65 +133,272 @@ switch ($action) {
 }
 ?>
 
+
+
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GrocerEase — Budget Optimization</title>
+  <title>💰 Budget & Cost Optimization</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <style>
-    body { font-family: Arial, sans-serif; margin:0; background:#f4f4f4; }
-    .container { max-width:900px; margin:0 auto; padding:20px; }
-    .header { display:flex; align-items:center; gap:15px; margin-bottom:20px; }
-    .back-arrow { font-size:24px; text-decoration:none; color:#12b87a; }
-    h1 { margin:0; font-size:24px; color:#333; }
-    .subtitle { font-size:14px; color:#666; margin-top:5px; }
-    .cards { display:flex; gap:20px; flex-wrap:wrap; margin-top:20px; }
-    .card { background:white; flex:1; min-width:250px; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    .card-head h3 { margin:0 0 10px 0; color:#333; }
-    .price { font-size:24px; color:#12b87a; }
-    .budget-input { width:100%; padding:8px; margin-bottom:10px; border-radius:4px; border:1px solid #ccc; }
-    .btn { padding:8px 12px; background:#12b87a; color:white; border:none; border-radius:4px; cursor:pointer; }
-    .btn:hover { background:#0fa46a; }
-    .muted { color:#888; font-size:13px; }
-    .top-list { list-style:none; padding:0; margin:0; }
-    .top-list li { padding:5px 0; border-bottom:1px solid #eee; }
-    .muted-row { color:#aaa; font-style:italic; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top left, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 60px 20px;
+      color: #0f1720;
+    }
+
+    .container {
+      max-width: 1400px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 30px;
+      box-shadow: 0 12px 45px rgba(76, 175, 80, 0.2);
+      padding: 70px 60px;
+      margin-top: 30px;
+      border: 1px solid #b5e1b7;
+      transform: scale(1.02);
+      transition: transform 0.3s ease;
+    }
+
+    .container:hover { transform: scale(1.025); }
+
+    .header-glow {
+      background: linear-gradient(135deg, #c8f7d1, #b2eabf);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-glow h1 {
+      color: #2e7d32;
+      font-size: 2.6rem;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .subtitle {
+      color: #4e7d4a;
+      text-align: center;
+      margin-bottom: 35px;
+      font-size: 1.2rem;
+    }
+
+    .back-arrow {
+      position: fixed;
+      top: 25px;
+      left: 25px;
+      width: 55px;
+      height: 55px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      color: #388e3c;
+      font-size: 22px;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .back-arrow:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    /* Cards */
+    .counter-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .counter-card {
+      background: #f9fff9;
+      border-radius: 18px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      border: 1px solid #c8e6c9;
+      padding: 30px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .counter-card h3 {
+      color: #2e7d32;
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    .counter-card strong {
+      display: block;
+      font-size: 28px;
+      color: #2e7d32;
+      font-weight: 700;
+    }
+
+    .budget-input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #e6e6e6;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg,#81c784,#66bb6a);
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover { opacity: 0.9; }
+
+    .muted {
+      color: #888;
+      font-size: 14px;
+    }
+
+    .table-container {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      border: 1px solid #c8e6c9;
+      padding: 28px;
+    }
+
+    ul.top-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+    }
+
+    .top-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .muted-row {
+      color: #aaa;
+      font-style: italic;
+    }
   </style>
 </head>
+
 <body>
+  <a href="dashboard.php" class="back-arrow" title="Back to Dashboard"><i class="fas fa-arrow-left"></i></a>
+
   <div class="container">
-    <div class="header">
-      <a href="#" class="back-arrow">←</a>
-      <div>
-        <h1>Budget & Cost Optimization</h1>
-        <p class="subtitle">Track your total spending and find cheaper alternatives</p>
-      </div>
+    <div class="header-glow">
+      <h1>💰 Budget & Cost Optimization</h1>
     </div>
 
-    <section class="cards">
-      <div class="card">
-        <div class="card-head"><h3>Total Grocery Cost</h3></div>
-        <div class="card-body"><strong class="price">₱0.00</strong></div>
+    <p class="subtitle">Track your total spending and find cheaper alternatives.</p>
+
+    <!-- Budget Cards -->
+    <div class="counter-bar">
+      <div class="counter-card">
+        <h3>Total Grocery Cost</h3>
+        <strong id="totalCost">₱0.00</strong>
       </div>
 
-      <div class="card">
-        <div class="card-head"><h3>Set Budget</h3></div>
-        <div class="card-body">
-          <input type="number" placeholder="Enter budget amount" class="budget-input"/>
-          <button class="btn">Update Budget</button>
-          <p class="muted">Your budget status will appear here</p>
-        </div>
+      <div class="counter-card">
+        <h3>Set Budget</h3>
+        <input type="number" placeholder="Enter budget amount" class="budget-input" id="budgetInput" />
+        <button class="btn" id="updateBudgetBtn">Update Budget</button>
+        <p class="muted" id="budgetStatus">Your budget status will appear here.</p>
       </div>
 
-      <div class="card">
-        <div class="card-head"><h3>Alternative Suggestions</h3></div>
-        <div class="card-body">
-          <ul class="top-list"><li class="muted-row">No costly items detected</li></ul>
-        </div>
+      <div class="counter-card">
+        <h3>Alternative Suggestions</h3>
+        <ul class="top-list" id="altList">
+          <li class="muted-row">No costly items detected</li>
+        </ul>
       </div>
-    </section>
+    </div>
   </div>
+
+  <script>
+    const totalCostEl = document.getElementById('totalCost');
+    const budgetInput = document.getElementById('budgetInput');
+    const budgetStatus = document.getElementById('budgetStatus');
+    const altList = document.getElementById('altList');
+
+    // Example data simulation
+    let totalCost = 0;
+    let budget = 0;
+    const sampleItems = [
+      { name: 'Chicken Breast', price: 300, alt: 'Frozen Chicken' },
+      { name: 'Imported Cheese', price: 450, alt: 'Local Cheese' },
+      { name: 'Organic Apples', price: 250, alt: 'Regular Apples' }
+    ];
+
+    function updateTotal() {
+      totalCost = sampleItems.reduce((sum, item) => sum + item.price, 0);
+      totalCostEl.textContent = `₱${totalCost.toFixed(2)}`;
+    }
+
+    function updateBudgetStatus() {
+      if (!budget) {
+        budgetStatus.textContent = 'Please set your budget.';
+        return;
+      }
+      if (totalCost > budget) {
+        budgetStatus.textContent = `⚠️ Over budget by ₱${(totalCost - budget).toFixed(2)}!`;
+        budgetStatus.style.color = 'red';
+      } else {
+        budgetStatus.textContent = `✅ Within budget. ₱${(budget - totalCost).toFixed(2)} remaining.`;
+        budgetStatus.style.color = '#2e7d32';
+      }
+    }
+
+    function suggestAlternatives() {
+      const expensive = sampleItems.filter(i => i.price > 300);
+      altList.innerHTML = '';
+      if (expensive.length === 0) {
+        altList.innerHTML = '<li class="muted-row">No costly items detected</li>';
+        return;
+      }
+      expensive.forEach(i => {
+        const li = document.createElement('li');
+        li.textContent = `${i.name} → Try ${i.alt}`;
+        altList.appendChild(li);
+      });
+    }
+
+    document.getElementById('updateBudgetBtn').addEventListener('click', () => {
+      budget = parseFloat(budgetInput.value) || 0;
+      updateBudgetStatus();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateTotal();
+      suggestAlternatives();
+    });
+  </script>
 </body>
 </html>
 
