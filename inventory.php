@@ -98,7 +98,6 @@ switch ($action) {
 
 
 
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -117,34 +116,40 @@ switch ($action) {
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 40px 20px;
+      padding: 60px 20px;
       color: #0f1720;
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1400px;
       width: 100%;
       background: #ffffff;
-      border-radius: 25px;
-      box-shadow: 0 10px 35px rgba(76, 175, 80, 0.15);
-      padding: 50px 40px;
-      margin-top: 20px;
-      border: 1px solid #c8e6c9;
+      border-radius: 30px;
+      box-shadow: 0 12px 45px rgba(76, 175, 80, 0.2);
+      padding: 70px 60px;
+      margin-top: 30px;
+      border: 1px solid #b5e1b7;
+      transform: scale(1.02);
+      transition: transform 0.3s ease;
+    }
+
+    .container:hover {
+      transform: scale(1.025);
     }
 
     .header-glow {
       background: linear-gradient(135deg, #c8f7d1, #b2eabf);
-      border-radius: 18px;
-      padding: 30px;
+      border-radius: 20px;
+      padding: 40px;
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
       position: relative;
       overflow: hidden;
     }
 
     .header-glow h1 {
       color: #2e7d32;
-      font-size: 2.2rem;
+      font-size: 2.6rem;
       font-weight: 800;
       margin: 0;
     }
@@ -152,60 +157,60 @@ switch ($action) {
     .subtitle {
       color: #4e7d4a;
       text-align: center;
-      margin-bottom: 25px;
-      font-size: 1.1rem;
+      margin-bottom: 35px;
+      font-size: 1.2rem;
     }
 
     .back-arrow {
       position: fixed;
-      top: 20px;
-      left: 20px;
-      width: 45px;
-      height: 45px;
+      top: 25px;
+      left: 25px;
+      width: 55px;
+      height: 55px;
       background: white;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
       cursor: pointer;
       color: #388e3c;
-      font-size: 20px;
+      font-size: 22px;
       z-index: 1000;
       transition: all 0.3s ease;
       text-decoration: none;
     }
 
     .back-arrow:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
     }
 
     /* Counter Cards */
     .counter-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 24px;
+      margin-bottom: 35px;
     }
 
     .counter-card {
       background: #f9fff9;
-      border-radius: 14px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+      border-radius: 18px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
       border: 1px solid #c8e6c9;
-      padding: 22px;
+      padding: 30px;
       text-align: center;
       transition: all 0.2s ease;
       font-weight: 600;
-      font-size: 1.05rem;
+      font-size: 1.2rem;
     }
 
     .counter-card strong {
       display: block;
-      font-size: 22px;
-      color: #43a047;
-      margin-top: 6px;
+      font-size: 26px;
+      color: #2e7d32;
+      margin-top: 8px;
     }
 
     .counter-card.add {
@@ -216,38 +221,38 @@ switch ($action) {
     }
 
     .counter-card.add:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(76,175,80,0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(76,175,80,0.3);
     }
 
     /* Table */
     .table-container {
       background: #ffffff;
-      border-radius: 18px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
       border: 1px solid #c8e6c9;
-      padding: 20px;
+      padding: 28px;
       overflow: auto;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 16px;
     }
 
     th, td {
       text-align: left;
-      padding: 14px 12px;
+      padding: 16px 14px;
       border-bottom: 1px solid #e6e6e6;
-      font-size: 15px;
     }
 
     th {
       background: linear-gradient(135deg,#81c784,#66bb6a);
       color: #000;
-      font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      font-size: 15px;
     }
 
     tr:hover { background-color: #f9fff9; }
@@ -255,12 +260,13 @@ switch ($action) {
     .btn {
       background: linear-gradient(135deg,#81c784,#66bb6a);
       border: none;
-      border-radius: 10px;
-      padding: 8px 12px;
+      border-radius: 12px;
+      padding: 10px 14px;
       color: #fff;
       font-weight: 600;
       cursor: pointer;
       margin: 4px;
+      font-size: 15px;
       transition: all 0.2s ease;
     }
 
@@ -294,9 +300,9 @@ switch ($action) {
     .modal-dialog {
       position: relative;
       background: #fff;
-      width: 520px;
+      width: 560px;
       max-width: 95%;
-      border-radius: 14px;
+      border-radius: 18px;
       overflow: hidden;
       box-shadow: 0 12px 40px rgba(0,0,0,0.25);
       z-index: 101;
@@ -305,43 +311,44 @@ switch ($action) {
     .modal-header {
       background: linear-gradient(90deg,#81c784,#66bb6a);
       color: #000;
-      padding: 18px 20px;
+      padding: 22px 26px;
       font-weight: 800;
-      font-size: 19px;
+      font-size: 20px;
     }
 
     .modal-body {
-      padding: 20px 22px;
+      padding: 26px;
       display:flex;
       flex-direction:column;
-      gap:14px;
+      gap:16px;
     }
 
     .modal-body label {
       font-weight:600;
-      font-size:14px;
+      font-size:15px;
       display:flex;
       flex-direction:column;
       gap:8px;
     }
 
     .modal-body input, .modal-body select {
-      padding: 11px 14px;
-      border-radius: 8px;
+      padding: 12px 15px;
+      border-radius: 10px;
       border: 1px solid #e6e6e6;
-      font-size: 14px;
+      font-size: 15px;
     }
 
     .modal-actions {
       display:flex;
       justify-content:flex-end;
-      gap:10px;
-      padding: 14px 18px;
+      gap:12px;
+      padding: 18px 24px;
       border-top: 1px solid #f1f1f1;
     }
 
     @media (max-width: 900px) {
-      .container { padding: 40px 20px; }
+      .container { padding: 50px 25px; }
+      .counter-bar { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -429,7 +436,7 @@ switch ($action) {
       localStorage.setItem('inventoryData', JSON.stringify(data));
     }
 
-    // ✅ Updated to include live counter updates
+    // ✅ Live counters included
     function renderTable(data) {
       tableBody.innerHTML = '';
       let total = data.length;
@@ -464,7 +471,6 @@ switch ($action) {
         tableBody.appendChild(tr);
       });
 
-      // Update counter values
       const counters = document.querySelectorAll('.counter-card strong');
       if (counters.length >= 4) {
         counters[0].textContent = total;
@@ -512,4 +518,3 @@ switch ($action) {
   </script>
 </body>
 </html>
-
