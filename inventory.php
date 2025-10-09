@@ -104,209 +104,282 @@ switch ($action) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Inventory & Expiration Tracking</title>
+  <title>🧺 Inventory & Expiration Tracking</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
-    :root {
-      --bg: #ffffff;
-      --soft: #f3fff7;
-      --brand: #bfeedd;
-      --brand-600: #8fdab3;
-      --ink: #0f1720;
-      --muted: #6b7280;
-      --card: #fbfdfb;
-      --radius: 14px;
-      --shadow: 0 8px 30px rgba(16,24,40,0.06);
-      font-family: Inter, system-ui, "Segoe UI", Roboto;
-      color: var(--ink);
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top left, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+      color: #0f1720;
     }
 
-    *{box-sizing:border-box;margin:0;padding:0;}
-    html,body{height:100%;background:linear-gradient(180deg,var(--bg),#f7fff8);}
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 25px;
+      box-shadow: 0 10px 35px rgba(76, 175, 80, 0.15);
+      padding: 50px 40px;
+      margin-top: 20px;
+      border: 1px solid #c8e6c9;
+    }
 
-    .app{display:grid;grid-template-columns:270px 1fr;gap:22px;padding:26px;height:100vh;align-items:start;}
+    .header-glow {
+      background: linear-gradient(135deg, #c8f7d1, #b2eabf);
+      border-radius: 18px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+      overflow: hidden;
+    }
 
-    /* Sidebar */
-    .sidebar{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);height:calc(100vh - 52px);position:sticky;top:26px;display:flex;flex-direction:column;}
-    .brand{display:flex;gap:12px;align-items:center;margin-bottom:20px;}
-    .logo{width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,var(--brand-600),var(--brand));display:flex;align-items:center;justify-content:center;font-weight:700;color:#063;box-shadow:0 8px 20px rgba(127,215,173,0.16);}
-    .brand-text h1{margin:0;font-size:18px;}
-    .brand-text small{color:var(--muted);font-size:12px;}
-    .nav{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
-    .nav-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;transition:all .18s ease;}
-    .nav-item:hover{background:var(--soft);}
-    .nav-item.active{background:linear-gradient(90deg,var(--brand-600),var(--brand));color:white;box-shadow:0 6px 18px rgba(127,215,173,0.14);}
-    .nav-item .icon{width:28px;text-align:center;}
-    .spacer{flex:1;}
-    .logout{border:1px solid rgba(0,0,0,0.06);padding:12px;border-radius:12px;}
+    .header-glow h1 {
+      color: #2e7d32;
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin: 0;
+    }
 
-    /* Main */
-    .main{display:flex;flex-direction:column;gap:18px;height:100%;}
-    .topbar{display:flex;justify-content:space-between;align-items:center;}
-    .topbar h2{margin:0;}
-    .subtitle{color:var(--muted);font-size:13px;margin-bottom:12px;}
+    .subtitle {
+      color: #4e7d4a;
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 1.1rem;
+    }
 
-    /* Counter Bar */
+    .back-arrow {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 45px;
+      height: 45px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      color: #388e3c;
+      font-size: 20px;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .back-arrow:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    /* Counter Cards */
     .counter-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 14px;
-      margin-bottom: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
     }
+
     .counter-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 16px;
+      background: #f9fff9;
+      border-radius: 14px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+      border: 1px solid #c8e6c9;
+      padding: 22px;
       text-align: center;
       transition: all 0.2s ease;
       font-weight: 600;
-      color: var(--ink);
+      font-size: 1.05rem;
     }
-    .counter-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 22px rgba(16, 24, 40, 0.1);
-    }
+
     .counter-card strong {
       display: block;
-      font-size: 20px;
-      color: var(--brand-600);
-      margin-top: 4px;
+      font-size: 22px;
+      color: #43a047;
+      margin-top: 6px;
     }
+
     .counter-card.add {
-      background: linear-gradient(90deg,var(--brand-600),var(--brand));
-      color: #000;
+      background: linear-gradient(135deg,#81c784,#66bb6a);
+      color: #fff;
       cursor: pointer;
       font-weight: 700;
     }
+
     .counter-card.add:hover {
-      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(76,175,80,0.3);
     }
 
     /* Table */
     .table-container {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 16px;
-      overflow:auto;
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+      border: 1px solid #c8e6c9;
+      padding: 20px;
+      overflow: auto;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      border-radius: var(--radius);
-      overflow: hidden;
     }
+
     th, td {
       text-align: left;
       padding: 14px 12px;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
+      border-bottom: 1px solid #e6e6e6;
+      font-size: 15px;
     }
+
     th {
-      background: linear-gradient(90deg,var(--brand-600),var(--brand));
+      background: linear-gradient(135deg,#81c784,#66bb6a);
       color: #000;
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    tr:hover { background-color: var(--soft); }
+
+    tr:hover { background-color: #f9fff9; }
+
     .btn {
-      background: linear-gradient(90deg,var(--brand-600),var(--brand));
+      background: linear-gradient(135deg,#81c784,#66bb6a);
       border: none;
       border-radius: 10px;
       padding: 8px 12px;
-      color: #000;
+      color: #fff;
       font-weight: 600;
       cursor: pointer;
       margin: 4px;
+      transition: all 0.2s ease;
     }
+
+    .btn:hover { opacity: 0.9; }
+
     .btn.ghost {
       background: transparent;
-      border: 1px solid rgba(0,0,0,0.06);
-      color: var(--ink);
+      border: 1px solid rgba(0,0,0,0.1);
+      color: #333;
     }
 
     /* Modal */
-    .modal{display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:100;}
-    .modal.show{display:flex;}
-    .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.5);}
-    .modal-dialog{position:relative;background:#fff;width:520px;max-width:90%;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:1;}
-    .modal-header{background:linear-gradient(90deg,var(--brand-600),var(--brand));color:#000;padding:16px 20px;font-weight:800;font-size:18px;}
-    .modal-body{padding:20px;display:flex;flex-direction:column;gap:12px;}
-    .modal-body label{font-weight:600;font-size:14px;display:flex;flex-direction:column;gap:6px;}
-    .modal-body input,.modal-body select{padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.1);font-size:14px;}
-    .modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid rgba(0,0,0,0.05);}
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(1px);
+    }
+
+    .modal-dialog {
+      position: relative;
+      background: #fff;
+      width: 520px;
+      max-width: 95%;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      z-index: 101;
+    }
+
+    .modal-header {
+      background: linear-gradient(90deg,#81c784,#66bb6a);
+      color: #000;
+      padding: 18px 20px;
+      font-weight: 800;
+      font-size: 19px;
+    }
+
+    .modal-body {
+      padding: 20px 22px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .modal-body label {
+      font-weight:600;
+      font-size:14px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .modal-body input, .modal-body select {
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: 1px solid #e6e6e6;
+      font-size: 14px;
+    }
+
+    .modal-actions {
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      padding: 14px 18px;
+      border-top: 1px solid #f1f1f1;
+    }
+
+    @media (max-width: 900px) {
+      .container { padding: 40px 20px; }
+    }
   </style>
 </head>
 
 <body>
-  <div class="app">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">GE</div>
-        <div class="brand-text">
-          <h1>GrocerEase</h1>
-          <small>Smart Grocery Manager</small>
-        </div>
-      </div>
+  <a href="dashboard.php" class="back-arrow" title="Back to Dashboard"><i class="fas fa-arrow-left"></i></a>
 
-      <nav class="nav">
-        <a href="dashboard.php" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
-        <a href="items.php" class="nav-item"><span class="icon">🧾</span> Grocery List</a>
-        <a href="meal.html" class="nav-item"><span class="icon">🍳</span> Meal Planning</a>
-        <a href="#" class="nav-item active"><span class="icon">📦</span> Inventory</a>
-        <a href="budget.php" class="nav-item"><span class="icon">💲</span> Budgeting</a>
-        <div class="spacer"></div>
-        <a href="#" class="nav-item logout"><span class="icon">↪</span> Logout</a>
-      </nav>
-    </aside>
+  <div class="container">
+    <div class="header-glow">
+      <h1>🧺 Inventory & Expiration Tracking</h1>
+    </div>
 
-    <!-- Main Content -->
-    <main class="main">
-      <div class="topbar">
-        <h2>Inventory & Expiration Tracking</h2>
-      </div>
+    <p class="subtitle">Monitor your food inventory and expiration dates easily.</p>
 
-      <div class="subtitle">Monitor your food inventory and expiration dates easily.</div>
+    <!-- Counter Bar -->
+    <div class="counter-bar">
+      <div class="counter-card">Total Items<strong>0</strong></div>
+      <div class="counter-card">Fresh<strong>0</strong></div>
+      <div class="counter-card">Expiring Soon<strong>0</strong></div>
+      <div class="counter-card">Expired<strong>0</strong></div>
+      <div class="counter-card add" id="addItemBtn">+ Add Item</div>
+    </div>
 
-      <!-- Counter Bar -->
-      <div class="counter-bar">
-        <div class="counter-card">
-          Total Items
-          <strong>0</strong>
-        </div>
-        <div class="counter-card">
-          Fresh
-          <strong>0</strong>
-        </div>
-        <div class="counter-card">
-          Expiring Soon
-          <strong>0</strong>
-        </div>
-        <div class="counter-card">
-          Expired
-          <strong>0</strong>
-        </div>
-        <div class="counter-card add" id="addItemBtn">+ Add Item</div>
-      </div>
-
-      <div class="table-container">
-        <table id="inventoryTable">
-          <thead>
-            <tr>
-              <th>Item Name</th>
-              <th>Quantity</th>
-              <th>Category</th>
-              <th>Expiration Date</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="inventoryBody"></tbody>
-        </table>
-      </div>
-    </main>
+    <div class="table-container">
+      <table id="inventoryTable">
+        <thead>
+          <tr>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Category</th>
+            <th>Expiration Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="inventoryBody"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Modal -->
@@ -356,15 +429,27 @@ switch ($action) {
       localStorage.setItem('inventoryData', JSON.stringify(data));
     }
 
+    // ✅ Updated to include live counter updates
     function renderTable(data) {
       tableBody.innerHTML = '';
+      let total = data.length;
+      let fresh = 0, expSoon = 0, expired = 0;
+
       data.forEach((item, index) => {
         const tr = document.createElement('tr');
         const now = new Date();
         const expDate = new Date(item.date);
         let status = 'Good';
-        if (expDate < now) status = 'Expired';
-        else if ((expDate - now) / (1000 * 60 * 60 * 24) <= 3) status = 'Expiring Soon';
+
+        if (expDate < now) {
+          status = 'Expired';
+          expired++;
+        } else if ((expDate - now) / (1000 * 60 * 60 * 24) <= 3) {
+          status = 'Expiring Soon';
+          expSoon++;
+        } else {
+          fresh++;
+        }
 
         tr.innerHTML = `
           <td>${item.name}</td>
@@ -378,6 +463,15 @@ switch ($action) {
           </td>`;
         tableBody.appendChild(tr);
       });
+
+      // Update counter values
+      const counters = document.querySelectorAll('.counter-card strong');
+      if (counters.length >= 4) {
+        counters[0].textContent = total;
+        counters[1].textContent = fresh;
+        counters[2].textContent = expSoon;
+        counters[3].textContent = expired;
+      }
     }
 
     saveBtn.onclick = () => {
@@ -418,3 +512,4 @@ switch ($action) {
   </script>
 </body>
 </html>
+
