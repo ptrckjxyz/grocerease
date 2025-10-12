@@ -2,121 +2,230 @@
 include 'connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $firstName = $_POST['firstName'];
-    $lastName = $_POST['lastName'];
-    $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $firstName = trim($_POST['firstName']);
+    $lastName = trim($_POST['lastName']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $confirm = $_POST['confirm'];
 
-    $insertStatement = $conn->prepare("INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)");
-    $insertStatement->bind_param("ssss", $firstName, $lastName, $email, $password);
-
-    if ($insertStatement->execute()) {
-      header('Location: login.php');
-      exit;
+    // Check if passwords match
+    if ($password !== $confirm) {
+        echo "Error: Passwords do not match.";
+        exit;
     }
 
-    else {
-        echo "Erorr: " . $insertStatement->error;
+    // Check if email already exists
+    $checkStatement = $conn->prepare("SELECT * FROM users WHERE email = ?");
+    $checkStatement->bind_param("s", $email);
+    $checkStatement->execute();
+    $checkResult = $checkStatement->get_result();
+
+    if ($checkResult->num_rows > 0) {
+        echo "Error: Email already registered.";
+        $checkStatement->close();
+        exit;
+    }
+    $checkStatement->close();
+
+    // Hash password and insert new user
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+    $insertStatement = $conn->prepare("INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)");
+    $insertStatement->bind_param("ssss", $firstName, $lastName, $email, $hashedPassword);
+
+    if ($insertStatement->execute()) {
+        header('Location: login.php');
+        exit;
+    } else {
+        echo "Error: " . $insertStatement->error;
     }
 
     $insertStatement->close();
 }
-
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration</title>
-    <link rel="stylesheet" href="registration.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Registration | GrocerEase</title>
+<style>
+  * { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    }
+
+  body {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    font-family: "Helvetica", Arial, sans-serif;
+    overflow: hidden;
+    background-color: lightgray;
+    align-items: stretch;
+    margin: 0;
+  }
+
+  .form-container {
+    width: 35%;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    margin: 40px;
+    z-index: 2;
+    position: relative;
+    max-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-inner {
+    padding: 28px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: auto;
+  }
+
+  .form-inner h2 {
+    color: #009933;
+    font-size: 26px;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+
+  .form-inner .intro {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+
+  label { font-weight:600; color:#333; font-size:14px; }
+  input {
+    padding:10px 12px;
+    border:1.5px solid #ccc;
+    border-radius:8px;
+    font-size:14px;
+  }
+  input:focus {
+    border-color:#009933;
+    outline:none;
+    box-shadow:0 0 0 3px rgba(0,153,51,0.08);
+  }
+
+  .signin-text { font-size:13px; text-align:center; color:#555; margin-top:8px; }
+  .signin-text a { color:#009933; font-weight:600; text-decoration:none; }
+
+  .btn {
+    background-color:#009933;
+    color:#fff;
+    border:none;
+    padding:14px;
+    border-radius:8px;
+    font-weight:bold;
+    font-size:15px;
+    cursor:pointer;
+    transition:0.2s;
+    margin-top:12px;
+    width:100%;
+  }
+
+  .btn:hover { 
+    background-color:#007a29; 
+    }
+
+  .brand-container {
+    width: 60%;           
+    height: 100vh;
+    background: #fff;
+    position: relative;
+    padding: 80px 40px 80px 80px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+    border-top-left-radius: 80px;
+    border-bottom-left-radius: 80px;
+    box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .green-circle {
+    position: absolute;
+    top: -150px;
+    right: -150px;
+    width: 300px;
+    height: 300px;
+    background:#009933;
+    border-radius:50%;
+    z-index:0;
+  }
+  .brand-container > *:not(.green-circle){ position:relative; z-index:1; }
+
+  .brand-title{ display:flex; align-items:center; gap:10px; font-size:50px; color:#333; margin-bottom:20px; }
+  .green{ color:#009933; }
+  .logo-img{ height:65px; width:auto; }
+
+  .brand-container h2{ font-size:24px; color:#333; margin-bottom:10px; }
+  .subtext{ color:#777; font-size:15px; margin-bottom:30px; line-height:1.4; }
+  .features{ list-style:none; display:flex; flex-direction:column; gap:15px; font-size:16px; color:#333; font-weight:600; }
+
+  /* small screens */
+  @media (max-width:900px){
+    body { flex-direction:column; overflow-y:auto; }
+    .form-container { width:90%; margin:20px auto; max-height:none; }
+    .brand-container { width:100%; height:auto; padding:40px; order:2; }
+    .green-circle { display:none; }
+  }
+</style>
 </head>
 <body>
 
-    <div id="container">
-        <!-- RIGHT SIDE -->
-        <div id="rightContainer">
+  <div class="form-container">
+    <form class="form-inner" action="registration.php" method="POST">
+      <h2>Create your account</h2>
+      <p class="intro">It only takes a minute.</p>
 
-            <div class="welcome-section">
-                <h4>Create an account</h4>
-            </div>
+      <label>First Name:</label>
+      <input type="text" name="firstName" required />
 
-            <p id="paragraph2">It only takes a minute.</p>
+      <label>Last Name:</label>
+      <input type="text" name="lastName" required />
 
-            <form class="login-form" action="registration.php" method="POST">
-                <div class="form-group">
-                    <label for="firstName">First Name:</label>
-                    <input type="text" class="textbox" name="firstName" required>
-                </div>
+      <label>Email:</label>
+      <input type="email" name="email" required />
 
-                <div class="form-group">
-                    <label for="lastName">Last Name:</label>
-                    <input type="text" class="textbox" name="lastName" required>
-                </div>
+      <label>Password:</label>
+      <input type="password" name="password" required />
 
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" class="textbox" name="email" required>
-                </div>
+      <label>Confirm Password:</label>
+      <input type="password" name="confirm" required />
 
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" class="textbox" name="password" required>
-                </div>
+      <p class="signin-text">Already have an account? <a href="login.php">Sign in</a></p>
 
-                <div class="form-group">
-                    <label for="confirm">Confirm Password:</label>
-                    <input type="password" class="textbox" name="confirm" required>
-                </div>
+      <button type="submit" class="btn">CREATE ACCOUNT</button>
+    </form>
+  </div>
 
-                <input id="signin" type="submit" value="Create Account">
+  <div class="brand-container">
+    <div class="green-circle"></div>
 
-                <div class="signup-link">
-                    <a href="login.html">
-                        <p id="link">Already have an account? <span class="green">Sign in</span></p>
-                    </a>
-                </div>
-            </form>
-        </div>
+    <h1 class="brand-title">
+      Grocer<span class="green">Ease</span>
+      <img src="image/logo.png" alt="GrocerEase Logo" class="logo-img" />
+    </h1>
 
-        <!-- LEFT SIDE -->
-        <div id="leftContainer">
-            <div class="brand-section">
-                <div class="inline">
-                  <h1>
-                      Grocer
-                      <span class="green">
-                          Ease
-                          <img src="image/logo.png" alt="GrocerEase Logo" class="logo-img">
-                      </span>
-                  </h1>
-              </div>
-            </div>
+    <h2>Join Grocer<span class="green">Ease</span> today.</h2>
+    <p class="subtext">Create an account and start managing groceries the smarter way.</p>
 
-            <div class="content-section">
-                <h2>Join Grocer<span class="green">Ease</span> today.</h2>
-                <h3>Create an account and start managing groceries the smarter<br> way.</h3>
+    <ul class="features">
+      <li>🧾 Grocery list that stays in sync.</li>
+      <li>🥗 Personalized meal suggestions.</li>
+      <li>💰 Waste and cost insights.</li>
+    </ul>
+  </div>
 
-                <div id="featuresContainer">
-                    <div class="feature-item">
-                        <img class="icons" src="/icons/icons8-list-50.png" alt="list">
-                        <p class="paragraph">Real-time inventory & expiration tracking.</p>
-                    </div>
-
-                    <div class="feature-item">
-                        <img class="icons" src="/icons/icons8-meal-50.png" alt="meal">
-                        <p class="paragraph">Smart meal suggestions from your pantry.</p>
-                    </div>
-
-                    <div class="feature-item">
-                        <img class="icons" src="/icons/icons8-customer-insight-64.png" alt="insight">
-                        <p class="paragraph">Cost analytics to reduce food waste.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
 </body>
 </html>
+
