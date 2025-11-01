@@ -27,7 +27,6 @@ if ($action) {
                 exit;
             }
 
-            // Check duplicate
             $checkStmt = $conn->prepare("SELECT COUNT(*) FROM items WHERE user_id = ? AND item_name = ?");
             $checkStmt->bind_param("is", $user_id, $item_name);
             $checkStmt->execute();
@@ -50,7 +49,6 @@ if ($action) {
             }
 
             $stmt->bind_param("issisdss", $user_id, $item_name, $category, $quantity, $unit, $price, $expiration_date, $purchase_date);
-
             if ($stmt->execute()) {
                 header("Location: items.php");
                 exit;
@@ -60,7 +58,6 @@ if ($action) {
             $stmt->close();
             exit;
 
-        /* GET SINGLE ITEM */
         case 'get_item':
             if ($item_id) {
                 $stmt = $conn->prepare("SELECT * FROM items WHERE item_id=? AND user_id=?");
@@ -72,56 +69,37 @@ if ($action) {
             }
             exit;
 
-        /* UPDATE ITEM */
-case 'update':
-    if ($item_id) {
-        $item_name = trim($_POST['item_name'] ?? '');
-        $category = trim($_POST['category'] ?? '');
-        $quantity = intval($_POST['quantity'] ?? 1);
-        $unit = trim($_POST['unit'] ?? '');
-        $price = floatval($_POST['price'] ?? 0);
-        $expiration_date = $_POST['expiration_date'] ?? null;
-        $purchase_date = $_POST['purchase_date'] ?? date('Y-m-d');
-
-        $stmt = $conn->prepare("
-            UPDATE items 
-            SET item_name=?, category=?, quantity=?, unit=?, price=?, expiration_date=?, purchase_date=?
-            WHERE item_id=? AND user_id=?
-        ");
-        if (!$stmt) {
-            echo "prepare_error";
-            exit;
-        }
-
-        // ✅ Fixed bind_param type string
-        $stmt->bind_param("ssisdssii", $item_name, $category, $quantity, $unit, $price, $expiration_date, $purchase_date, $item_id, $user_id);
-
-        $result = $stmt->execute();
-        echo $result ? "updated" : "update_error";
-    
-        $stmt->close();
-    }
-    exit;
-
-
-        /* DELETE ITEM */
-        case 'delete':
+        case 'update':
             if ($item_id) {
-                $stmt = $conn->prepare("DELETE FROM items WHERE item_id=? AND user_id=?");
-                $stmt->bind_param("ii", $item_id, $user_id);
-                if ($stmt->execute()) {
-                    header("Location: items.php");
-                    exit;
-                } else {
-                    echo "delete_error";
-                }
+                $item_name = trim($_POST['item_name'] ?? '');
+                $category = trim($_POST['category'] ?? '');
+                $quantity = intval($_POST['quantity'] ?? 1);
+                $unit = trim($_POST['unit'] ?? '');
+                $price = floatval($_POST['price'] ?? 0);
+                $expiration_date = $_POST['expiration_date'] ?? null;
+                $purchase_date = $_POST['purchase_date'] ?? date('Y-m-d');
+
+                $stmt = $conn->prepare("
+                    UPDATE items 
+                    SET item_name=?, category=?, quantity=?, unit=?, price=?, expiration_date=?, purchase_date=?
+                    WHERE item_id=? AND user_id=?
+                ");
+                $stmt->bind_param("ssisdssii", $item_name, $category, $quantity, $unit, $price, $expiration_date, $purchase_date, $item_id, $user_id);
+                echo $stmt->execute() ? "updated" : "update_error";
                 $stmt->close();
             }
             exit;
 
-        /* FETCH ALL ITEMS */
+        case 'delete':
+            if ($item_id) {
+                $stmt = $conn->prepare("DELETE FROM items WHERE item_id=? AND user_id=?");
+                $stmt->bind_param("ii", $item_id, $user_id);
+                $stmt->execute();
+                header("Location: items.php");
+            }
+            exit;
+
         case 'fetch_all':
-            // Update status before fetching
             $conn->query("
                 UPDATE items 
                 SET status = CASE
@@ -131,8 +109,24 @@ case 'update':
                 END
                 WHERE user_id = '$user_id'
             ");
-
             $stmt = $conn->prepare("SELECT * FROM items WHERE user_id=? ORDER BY created_at DESC");
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $items = [];
+            while ($row = $result->fetch_assoc()) $items[] = $row;
+            echo json_encode($items);
+            exit;
+        
+                /* CHECK EXPIRING ITEMS */
+        case 'check_expiring':
+            $stmt = $conn->prepare("
+                SELECT item_name, expiration_date 
+                FROM items 
+                WHERE user_id = ? 
+                AND expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)
+                ORDER BY expiration_date ASC
+            ");
             $stmt->bind_param("i", $user_id);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -141,571 +135,206 @@ case 'update':
             while ($row = $result->fetch_assoc()) {
                 $items[] = $row;
             }
-            echo json_encode($items);
-            $stmt->close();
-            exit;
 
-        /* CHECK EXPIRING */
-        case 'check_expiring':
-            $stmt = $conn->prepare("
-                SELECT item_name, expiration_date, status
-                FROM items 
-                WHERE user_id=? 
-                  AND (status='expiring_soon' OR status='expired')
-                ORDER BY expiration_date ASC
-            ");
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $items = [];
-            while ($row = $result->fetch_assoc()) $items[] = $row;
+            header('Content-Type: application/json');
             echo json_encode($items);
-            $stmt->close();
-            exit;
-
-        /* MANUAL STATUS UPDATE */
-        case 'update_status':
-            $conn->query("
-                UPDATE items 
-                SET status = CASE
-                    WHEN expiration_date < CURDATE() THEN 'expired'
-                    WHEN expiration_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY) THEN 'expiring_soon'
-                    ELSE 'fresh'
-                END
-                WHERE user_id = $user_id
-            ");
-            echo "status_updated";
             exit;
     }
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Grocery List Management - GrocerEase</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="shortcut icon" href="image/logo.png" type="image/x-icon">
-  <style>
-    * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+<meta charset="UTF-8">
+<title>Grocery List Management - GrocerEase</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Poppins',sans-serif;background:#e8f5e9;min-height:100vh;padding:40px;}
 
-body {
-  font-family: 'Poppins', 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px;
-}
+/* Container */
+.container{max-width:1300px;margin:auto;background:white;border-radius:20px;padding:30px;box-shadow:0 10px 25px rgba(0,0,0,0.1);}
 
-/* ====== Container ====== */
-.container {
-  max-width: 1400px;
-  width: 100%;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(76, 175, 80, 0.15);
-  padding: 40px;
-  border: 1px solid #dcedc8;
-  animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ====== Header ====== */
-.header-glow {
-  background: linear-gradient(135deg, #a5d6a7, #81c784);
-  border-radius: 15px;
-  padding: 25px;
-  text-align: center;
-  margin-bottom: 30px;
-  color: white;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
-}
-
-.header-glow h1 {
-  font-size: 2.2rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-/* ====== Form ====== */
-form {
-  background: #f9fff9;
-  padding: 25px;
-  border-radius: 15px;
-  border: 1px solid #d0e8d0;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
-  transition: transform 0.2s ease;
-}
-
-form:hover {
-  transform: scale(1.01);
-}
-
-form input,
-form select {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e0f2f1;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-form input:focus,
-form select:focus {
-  border-color: #66bb6a;
-  box-shadow: 0 0 6px rgba(102, 187, 106, 0.3);
-  outline: none;
-}
-
-form button {
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, #66bb6a, #43a047);
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-form button:hover {
-  background: linear-gradient(135deg, #57a05c, #2e7d32);
-  box-shadow: 0 6px 18px rgba(67, 160, 71, 0.3);
-  transform: translateY(-2px);
-}
-
-/* ====== Table ====== */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
-}
-
-th,
-td {
-  padding: 14px 18px;
-  text-align: left;
-}
-
-th {
-  background: #dcedc8;
-  color: #33691e;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-}
-
-td {
-  border-bottom: 1px solid #e0f2f1;
-}
-
-tr:hover {
-  background-color: #f1f8e9;
-  transition: background 0.3s ease;
-}
-
-tr.fresh {
-  background-color: #e8f5e9;
-}
-
-tr.warning {
-  background-color: #fffde7;
-}
-
-tr.expired {
-  background-color: #ffebee;
-}
-
-/* ====== Buttons ====== */
-.btn-edit,
-.btn-delete {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  padding: 8px 10px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  font-size: 15px;
-}
-
-.btn-edit {
-  background: #66bb6a;
-  color: white;
-}
-
-.btn-edit:hover {
-  background: #43a047;
-  box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
-}
-
-.btn-delete {
-  background: #e57373;
-  color: white;
-}
-
-.btn-delete:hover {
-  background: #c62828;
-  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
-}
-
-/* ====== Back Arrow ====== */
-.back-arrow {
-  position: fixed;
-  top: 25px;
-  left: 25px;
-  width: 45px;
-  height: 45px;
-  background: #ffffff;
-  border-radius: 50%;
+/* Header */
+.header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #43a047;
-  font-size: 18px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
-  z-index: 1000;
-  text-decoration: none; /* removes underline */
-}
-
-.back-arrow:hover {
-  transform: translateY(-3px);
-  background: #e8f5e9;
-}
-
-/* ====== Modals ====== */
-#editModal,
-#deleteModal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  animation: fadeIn 0.3s ease;
-}
-
-#editModal > div,
-#deleteModal > div {
-  background: white;
-  padding: 25px;
+  justify-content: center; /* center title */
+  position: relative; /* needed for absolute button */
+  background: linear-gradient(135deg,#a5d6a7,#81c784);
+  color: white;
+  padding: 20px 30px;
   border-radius: 15px;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease;
 }
 
-@keyframes slideIn {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-#editModal h3 {
+.header h1 {
   text-align: center;
-  color: #2e7d32;
-  margin-bottom: 20px;
-  font-weight: 600;
+  flex: 1;
 }
 
-#editModal input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 2px solid #e0f2f1;
-  border-radius: 8px;
-  transition: all 0.3s;
+.add-btn{
+  background:white;color:#388e3c;border:none;border-radius:50%;
+  width:45px;height:45px;font-size:22px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.3s; position: absolute; right:20px;
 }
+.add-btn:hover{background:#c8e6c9;transform:rotate(90deg);}
 
-#editModal input:focus {
-  border-color: #66bb6a;
-  outline: none;
-  box-shadow: 0 0 5px rgba(102, 187, 106, 0.3);
+/* Category grid */
+.categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:30px;}
+.category-card{
+  border:1px solid #c8e6c9;border-radius:15px;padding:20px;
+  background:#f9fff9;box-shadow:0 4px 12px rgba(0,0,0,0.05);
 }
-
-#editModal button {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 5px;
+.category-card h2{
+  font-size:1.2rem;color:#2e7d32;margin-bottom:15px;
+  border-bottom:2px solid #a5d6a7;padding-bottom:5px;
 }
-
-#editModal button[type="submit"] {
-  background: linear-gradient(135deg, #66bb6a, #43a047);
-  color: white;
+.item{display:flex;justify-content:space-between;align-items:center;margin:8px 0;padding:8px 10px;border-radius:8px;transition:0.3s;}
+.item:hover{background:#f1f8e9;}
+.item span{font-size:0.95rem;}
+.actions button{
+  border:none;border-radius:6px;padding:5px 8px;margin-left:4px;
+  cursor:pointer;font-size:0.85rem;
 }
+.actions .edit{background:#66bb6a;color:white;}
+.actions .delete{background:#e57373;color:white;}
+.actions .edit:hover{background:#388e3c;}
+.actions .delete:hover{background:#c62828;}
 
-#editModal button[type="submit"]:hover {
-  background: linear-gradient(135deg, #57a05c, #2e7d32);
+/* Modal Form */
+#addModal,#editModal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;z-index:1000;}
+.modal-content{
+  background:white;padding:25px;border-radius:15px;width:400px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.2);
 }
+.modal-content h3{text-align:center;margin-bottom:15px;color:#2e7d32;}
+.modal-content input,.modal-content select{width:100%;padding:10px;margin:6px 0;border:1px solid #c8e6c9;border-radius:8px;}
+.modal-content button{width:100%;padding:10px;margin-top:10px;border:none;border-radius:8px;cursor:pointer;font-weight:600;}
+.modal-content .save{background:#66bb6a;color:white;}
+.modal-content .cancel{background:#e0e0e0;}
+.modal-content .save:hover{background:#388e3c;}
+.modal-content .cancel:hover{background:#bdbdbd;}
 
-#editModal button[type="button"] {
-  background: #e0e0e0;
-  color: #333;
-}
-
-#editModal button[type="button"]:hover {
-  background: #bdbdbd;
-}
-
-/* Delete Modal */
-#deleteModal p {
-  margin-bottom: 20px;
-  color: #424242;
-  font-size: 1rem;
-}
-
-#deleteModal button {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-#confirmDeleteBtn {
-  background: #e57373;
-  color: white;
-}
-
-#confirmDeleteBtn:hover {
-  background: #c62828;
-}
-
-#deleteModal button:last-child {
-  background: #e0e0e0;
-  color: #333;
-}
-
-#deleteModal button:last-child:hover {
-  background: #bdbdbd;
-}
-
-  </style>
+.back-arrow{position:fixed;top:25px;left:25px;width:45px;height:45px;
+  border-radius:50%;background:white;color:#43a047;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:0 3px 10px rgba(0,0,0,0.2);}
+.back-arrow:hover{background:#e8f5e9;}
+</style>
 </head>
 <body>
-  <a href="dashboard.php" class="back-arrow"><i class="fas fa-arrow-left"></i></a>
+<a href="dashboard.php" class="back-arrow"><i class="fas fa-arrow-left"></i></a>
+<div class="container">
+  <div class="header">
+    <h1>🛒 Grocery List Management</h1>
+    <button class="add-btn" onclick="openAddModal()"><i class="fas fa-plus"></i></button>
+  </div>
 
-  <div class="container">
-    <div class="header-glow">
-      <h1>🛒 Grocery List Management</h1>
-    </div>
+  <div class="categories" id="categoryContainer"></div>
+</div>
 
+<!-- Add Modal -->
+<div id="addModal">
+  <div class="modal-content">
+    <h3>Add New Item</h3>
     <form method="POST" action="items.php?action=add">
       <select name="category" required>
         <option value="" disabled selected>Select Category</option>
-        <option>Fruits</option>
-        <option>Vegetables</option>
-        <option>Dairy</option>
-        <option>Beverages</option>
-        <option>Snacks</option>
-        <option>Meat</option>
-        <option>Others</option>
+        <option>Fruits</option><option>Vegetables</option>
+        <option>Dairy</option><option>Beverages</option>
+        <option>Cereals</option><option>Meat</option><option>Poultry Products</option><option>Others</option>
       </select>
       <input type="text" name="item_name" placeholder="Item Name" required>
       <input type="number" name="quantity" placeholder="Quantity" required>
       <input type="text" name="unit" placeholder="Unit (e.g. kg, pcs)">
       <input type="number" step="0.01" name="price" placeholder="Price (₱)">
-      <label for="purchase_date">📅 Purchase Date</label>
-      <input type="date" name="purchase_date" required>
-      <label for="expiration_date">⏳ Expiration Date</label>
-      <input type="date" name="expiration_date" required>
-      <button type="submit">Add Item</button>
+      <label>Purchase Date</label><input type="date" name="purchase_date" required>
+      <label>Expiration Date</label><input type="date" name="expiration_date" required>
+      <button type="submit" class="save">Add Item</button>
+      <button type="button" class="cancel" onclick="closeAddModal()">Cancel</button>
     </form>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Item Name</th>
-          <th>Quantity</th>
-          <th>Unit</th>
-          <th>Price (₱)</th>
-          <th>Purchase Date</th>
-          <th>Expiration Date</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="itemTableBody"></tbody>
-    </table>
   </div>
+</div>
 
-  <!-- Edit Modal -->
 <!-- Edit Modal -->
-<div id="editModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; 
-  background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-  <div style="background:white; padding:20px; border-radius:10px; width:400px;">
+<div id="editModal">
+  <div class="modal-content">
     <h3>Edit Item</h3>
     <form id="editForm">
       <input type="hidden" name="item_id" id="editItemId">
-      
-      <!-- ✅ Added category dropdown -->
       <select name="category" id="editCategory" required>
-        <option value="" disabled>Select Category</option>
-        <option>Fruits</option>
-        <option>Vegetables</option>
-        <option>Dairy</option>
-        <option>Beverages</option>
-        <option>Snacks</option>
-        <option>Meat</option>
-        <option>Others</option>
-      </select><br>
-
-      <input type="text" name="item_name" id="editItemName" placeholder="Item Name" required><br>
-      <input type="number" name="quantity" id="editQuantity" placeholder="Quantity" required><br>
-      <input type="text" name="unit" id="editUnit" placeholder="Unit"><br>
-      <input type="number" step="0.01" name="price" id="editPrice" placeholder="Price"><br>
-      <label>Expiration Date</label>
-      <input type="date" name="expiration_date" id="editExpiration"><br>
-      <button type="submit">Save Changes</button>
-      <button type="button" onclick="closeEditModal()">Cancel</button>
+        <option>Fruits</option><option>Vegetables</option><option>Dairy</option>
+        <option>Beverages</option><option>Cereals</option><option>Meat</option><option>Poultry Products</option><option>Others</option>
+      </select>
+      <input type="text" name="item_name" id="editItemName" placeholder="Item Name" required>
+      <input type="number" name="quantity" id="editQuantity" placeholder="Quantity" required>
+      <input type="text" name="unit" id="editUnit" placeholder="Unit">
+      <input type="number" step="0.01" name="price" id="editPrice" placeholder="Price">
+      <label>Expiration Date</label><input type="date" name="expiration_date" id="editExpiration">
+      <button type="submit" class="save">Save Changes</button>
+      <button type="button" class="cancel" onclick="closeEditModal()">Cancel</button>
     </form>
   </div>
 </div>
 
+<script>
+function openAddModal(){document.getElementById('addModal').style.display='flex';}
+function closeAddModal(){document.getElementById('addModal').style.display='none';}
+function closeEditModal(){document.getElementById('editModal').style.display='none';}
 
-<!-- Delete Modal -->
-<div id="deleteModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; 
-  background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-  <div style="background:white; padding:20px; border-radius:10px; width:300px; text-align:center;">
-    <p id="deleteMessage"></p>
-    <button id="confirmDeleteBtn">Delete</button>
-    <button onclick="closeDeleteModal()">Cancel</button>
-  </div>
-</div>
+function getStatusColor(expDate){
+  const today=new Date();const exp=new Date(expDate);
+  const diff=(exp-today)/(1000*60*60*24);
+  if(diff<0)return 'expired';if(diff<=3)return 'warning';return 'fresh';
+}
 
-
-  <script>
-    // Fetch and display all items
-    function getStatusColor(expirationDate) {
-      const today = new Date();
-      const expDate = new Date(expirationDate);
-      const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-      if (diffDays < 0) return 'expired';
-      if (diffDays <= 3) return 'warning';
-      return 'fresh';
-    }
-
-    function loadItems() {
-      fetch('items.php?action=fetch_all')
-        .then(res => res.json())
-        .then(items => {
-          const tbody = document.getElementById('itemTableBody');
-          tbody.innerHTML = items.map(item => {
-            const colorClass = getStatusColor(item.expiration_date);
-            return `
-              <tr class="${colorClass}">
-                <td>${item.category}</td>
-                <td>${item.item_name}</td>
-                <td>${item.quantity}</td>
-                <td>${item.unit}</td>
-                <td>₱${parseFloat(item.price).toFixed(2)}</td>
-                <td>${item.purchase_date}</td>
-                <td>${item.expiration_date}</td>
-                <td>${item.status}</td>
-                <td>
-                  <a href="javascript:void(0)" class="btn-edit" onclick="openEditModal(${item.item_id})"><i class="fas fa-edit"></i></a>
-                  <a href="javascript:void(0)" class="btn-delete" onclick="openDeleteModal(${item.item_id}, '${item.item_name.replace(/'/g, "\\'")}')"><i class="fas fa-trash-alt"></i></a>
-                </td>
-              </tr>`;
-          }).join('');
-        });
-    }
-
-    loadItems();
-    setInterval(loadItems, 60000); // Auto-refresh every minute
-
-    function openEditModal(itemId) {
-  fetch(`items.php?action=get_item&id=${itemId}`)
-    .then(res => res.json())
-    .then(item => {
-      document.getElementById('editItemId').value = item.item_id;
-      document.getElementById('editItemName').value = item.item_name;
-      document.getElementById('editQuantity').value = item.quantity;
-      document.getElementById('editUnit').value = item.unit;
-      document.getElementById('editPrice').value = item.price;
-      document.getElementById('editExpiration').value = item.expiration_date;
-
-      // ✅ Set category dropdown
-      document.getElementById('editCategory').value = item.category;
-
-      document.getElementById('editModal').style.display = 'flex';
+function loadItems(){
+  fetch('items.php?action=fetch_all').then(res=>res.json()).then(items=>{
+    const cats=['Fruits','Vegetables','Dairy','Beverages','Cereals','Meat','Poultry Products','Others'];
+    const container=document.getElementById('categoryContainer');
+    container.innerHTML='';
+    cats.forEach(cat=>{
+      const catItems=items.filter(i=>i.category===cat);
+      const list=catItems.map(item=>{
+        const color=getStatusColor(item.expiration_date);
+        return `<div class="item ${color}">
+          <span>${item.item_name} (${item.quantity} ${item.unit||''})</span>
+          <div class="actions">
+            <button class="edit" onclick="openEditModal(${item.item_id})"><i class='fas fa-edit'></i></button>
+            <button class="delete" onclick="deleteItem(${item.item_id})"><i class='fas fa-trash'></i></button>
+          </div></div>`;
+      }).join('') || '<p style="color:#777;font-size:0.9rem;">No items yet.</p>';
+      container.innerHTML+=`<div class="category-card"><h2>${cat}</h2>${list}</div>`;
     });
-}
-
-function closeEditModal() {
-  document.getElementById('editModal').style.display = 'none';
-}
-
-document.getElementById('editForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const formData = new FormData(this);
-  fetch(`items.php?action=update&id=${formData.get('item_id')}`, {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.text())
-  .then(result => {
-    if (result === 'updated') {
-      closeEditModal();
-      loadItems();
-    } else {
-      alert('Update failed.');
-    }
   });
-});
+}
+loadItems();
 
-let deleteItemId = null;
-
-function openDeleteModal(itemId, itemName) {
-  deleteItemId = itemId;
-  document.getElementById('deleteMessage').innerText = `Are you sure you want to delete "${itemName}"?`;
-  document.getElementById('deleteModal').style.display = 'flex';
+function openEditModal(id){
+  fetch(`items.php?action=get_item&id=${id}`).then(r=>r.json()).then(item=>{
+    document.getElementById('editItemId').value=item.item_id;
+    document.getElementById('editCategory').value=item.category;
+    document.getElementById('editItemName').value=item.item_name;
+    document.getElementById('editQuantity').value=item.quantity;
+    document.getElementById('editUnit').value=item.unit;
+    document.getElementById('editPrice').value=item.price;
+    document.getElementById('editExpiration').value=item.expiration_date;
+    document.getElementById('editModal').style.display='flex';
+  });
 }
 
-function closeDeleteModal() {
-  document.getElementById('deleteModal').style.display = 'none';
-}
-
-document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-  fetch(`items.php?action=delete&id=${deleteItemId}`)
-    .then(() => {
-      closeDeleteModal();
-      loadItems();
-    });
+document.getElementById('editForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const fd=new FormData(e.target);
+  fetch(`items.php?action=update&id=${fd.get('item_id')}`,{method:'POST',body:fd})
+  .then(r=>r.text()).then(t=>{if(t==='updated'){closeEditModal();loadItems();}});
 });
 
-  </script>
+function deleteItem(id){
+  if(confirm("Are you sure you want to delete this item?"))
+    fetch(`items.php?action=delete&id=${id}`).then(()=>loadItems());
+}
+</script>
 </body>
 </html>
