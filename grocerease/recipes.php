@@ -216,8 +216,31 @@ if ($action !== '') {
     .header-glow h1 { color: #2e7d32; font-size: 2.2rem; font-weight: 800; margin: 0; }
     .header-glow::after { content: ""; position: absolute; top: 0; left: -80%; width: 50%; height: 100%; background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0) 100%); transform: rotate(25deg); animation: shimmer 3s infinite linear; }
     @keyframes shimmer { 0% { transform: translateX(-150%) rotate(25deg); } 100% { transform: translateX(150%) rotate(25deg); } }
-    .back-arrow { position: fixed; top: 20px; left: 20px; width: 45px; height: 45px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); cursor: pointer; color: #388e3c; font-size: 20px; z-index: 1000; transition: all 0.3s ease; text-decoration: none; }
-    .back-arrow:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .back-arrow{
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.back-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+.back-arrow:hover {
+  background: #e8f5e9;
+}
+
+
     .subtitle { color: #4e7d4a; text-align:center; margin-bottom: 22px; font-size: 1.05rem; }
     .tabs { display:flex; justify-content:center; gap:12px; margin-bottom: 25px; }
     .tab { border: 2px solid #a5d6a7; background: white; border-radius: 35px; padding: 10px 24px; font-weight: 600; cursor: pointer; transition: all .2s ease; font-size: 1rem; }
@@ -508,7 +531,12 @@ if ($action !== '') {
 </style>
 </head>
 <body>
-<a href="dashboard.php" class="back-arrow" title="Back to Dashboard"><i class="fas fa-arrow-left"></i></a>
+<a href="dashboard.php" class="back-arrow" title="Back to Dashboard">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 18L9 12L15 6" stroke="#43a047" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</a>
+
 <div class="container">
   <div class="header-glow"><h1>🍽️ Meal Planning & Recipe Suggestions</h1></div>
   <p class="subtitle">Plan your week and discover new meals using your available ingredients.</p>
