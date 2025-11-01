@@ -19,6 +19,8 @@ function sanitize($value) {
 }
 
 if ($action !== '') {
+    header('Content-Type: application/json'); // ✅ Ensure proper response type
+
     switch ($action) {
 
         case 'set_budget':
@@ -31,30 +33,42 @@ if ($action !== '') {
 
             $limit = floatval($limit_raw);
 
-            $check = $conn->prepare("SELECT id FROM budgets WHERE user_id=?");
+            // Calculate total spent to update DB fields properly
+            $spent_stmt = $conn->prepare("SELECT SUM(price * quantity) AS total_spent FROM items WHERE user_id=?");
+            $spent_stmt->bind_param("i", $user_id);
+            $spent_stmt->execute();
+            $spent_data = $spent_stmt->get_result()->fetch_assoc();
+            $spent_stmt->close();
+
+            $total_spent = floatval($spent_data['total_spent'] ?? 0);
+            $remaining_budget = $limit - $total_spent;
+
+            // Check if the user already has a budget
+            $check = $conn->prepare("SELECT budget_id FROM budgets WHERE user_id=?");
             $check->bind_param("i", $user_id);
             $check->execute();
             $res = $check->get_result();
 
             if ($res->num_rows > 0) {
-                $stmt = $conn->prepare("UPDATE budgets SET budget_limit=? WHERE user_id=?");
-                $stmt->bind_param("di", $limit, $user_id);
+                // ✅ Update existing budget
+                $stmt = $conn->prepare("UPDATE budgets SET budget_limit=?, total_spent=?, remaining_budget=? WHERE user_id=?");
+                $stmt->bind_param("dddi", $limit, $total_spent, $remaining_budget, $user_id);
                 $stmt->execute();
-                echo json_encode(["status" => "budget_updated"]);
+                echo json_encode(["status" => "budget_updated", "remaining" => $remaining_budget]);
                 $stmt->close();
             } else {
-                $stmt = $conn->prepare("INSERT INTO budgets (user_id, budget_limit, total_spent) VALUES (?, ?, 0)");
-                $stmt->bind_param("id", $user_id, $limit);
+                // ✅ Insert new budget for new user
+                $stmt = $conn->prepare("INSERT INTO budgets (user_id, budget_limit, total_spent, remaining_budget) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("iddd", $user_id, $limit, $total_spent, $remaining_budget);
                 $stmt->execute();
-                echo json_encode(["status" => "budget_added"]);
+                echo json_encode(["status" => "budget_added", "remaining" => $remaining_budget]);
                 $stmt->close();
             }
+
             $check->close();
             exit;
 
         case 'get_items':
-            header('Content-Type: application/json');
-
             $stmt = $conn->prepare("SELECT item_name AS name, price, quantity, category FROM items WHERE user_id=?");
             $stmt->bind_param("i", $user_id);
             $stmt->execute();
@@ -65,30 +79,18 @@ if ($action !== '') {
             exit;
 
         case 'get_budget_report':
-            header('Content-Type: application/json');
-
-            $stmt = $conn->prepare("SELECT budget_limit FROM budgets WHERE user_id=?");
+            $stmt = $conn->prepare("SELECT budget_limit, total_spent, remaining_budget FROM budgets WHERE user_id=?");
             $stmt->bind_param("i", $user_id);
             $stmt->execute();
             $budget_data = $stmt->get_result()->fetch_assoc();
             $stmt->close();
 
-            $budget_limit = floatval($budget_data['budget_limit'] ?? 0);
+            if (!$budget_data) {
+                echo json_encode(["budget_limit" => 0, "total_spent" => 0, "remaining_budget" => 0]);
+                exit;
+            }
 
-            $stmt = $conn->prepare("SELECT SUM(price * quantity) AS total_spent FROM items WHERE user_id=?");
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $spent_data = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-
-            $total_spent = floatval($spent_data['total_spent'] ?? 0);
-            $remaining = $budget_limit - $total_spent;
-
-            echo json_encode([
-                "budget_limit" => $budget_limit,
-                "total_spent" => $total_spent,
-                "remaining_budget" => $remaining
-            ]);
+            echo json_encode($budget_data);
             exit;
 
         default:
@@ -107,7 +109,8 @@ if ($action !== '') {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="shortcut icon" href="image/logo.png" type="image/x-icon">
   <style>
-    * {
+    /* (Your existing CSS stays exactly the same — unchanged) */
+        * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -165,30 +168,29 @@ if ($action !== '') {
       font-weight: 500;
     }
 
-    .back-arrow {
-      position: fixed;
-      top: 25px;
-      left: 25px;
-      width: 55px;
-      height: 55px;
-      background: #ffffff;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-      cursor: pointer;
-      color: #388e3c;
-      font-size: 22px;
-      z-index: 1000;
-      transition: all 0.3s ease;
-      text-decoration: none;
-    }
+    .back-arrow{
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
 
-    .back-arrow:hover {
-      transform: scale(1.1);
-      background: #e8f5e9;
-    }
+.back-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+.back-arrow:hover {
+  background: #e8f5e9;
+}
 
     .counter-bar {
       display: grid;
@@ -330,7 +332,12 @@ if ($action !== '') {
   </style>
 </head>
 <body>
-  <a href="dashboard.php" class="back-arrow" title="Back to Dashboard"><i class="fas fa-arrow-left"></i></a>
+  <a href="dashboard.php" class="back-arrow" title="Back to Dashboard">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 18L9 12L15 6" stroke="#43a047" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</a>
+
   <div class="container">
     <div class="header-glow">
       <h1>💰 Budget & Cost Optimization</h1>
@@ -386,7 +393,6 @@ if ($action !== '') {
     }
 
     function updateBudgetStatus() {
-      // Replace emoji with inline SVG icons + modern layout
       if (!budget) {
         budgetStatus.textContent = 'Please set your budget.';
         budgetStatus.style.color = '#888';
@@ -398,12 +404,10 @@ if ($action !== '') {
         budgetStatus.innerHTML = `
           <span class="status" aria-live="polite">
             <span class="status-icon" aria-hidden="true">
-              <!-- Warning triangle SVG (red) -->
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="warnTitle">
-                <title id="warnTitle">Over budget</title>
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 21h22L12 2 1 21z" fill="currentColor" />
-                <path d="M12 9v4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M12 17h.01" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 9v4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M12 17h.01" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
               </svg>
             </span>
             <span>Over budget by ₱${overBy}</span>
@@ -415,11 +419,9 @@ if ($action !== '') {
         budgetStatus.innerHTML = `
           <span class="status" aria-live="polite">
             <span class="status-icon" aria-hidden="true">
-              <!-- Check circle SVG (green) -->
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="okTitle">
-                <title id="okTitle">Within budget</title>
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="10" fill="currentColor" />
-                <path d="M7 12.5l2.5 2.5L17 8" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 12.5l2.5 2.5L17 8" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
               </svg>
             </span>
             <span>Within budget. ₱${remaining} remaining.</span>
@@ -472,16 +474,14 @@ if ($action !== '') {
           budget_limit: budget
         })
       })
-      .then(res => res.text())
+      .then(res => res.json())
       .then(data => {
         console.log('Response:', data);
         suggestAlternatives();
       });
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
-      fetchItems();
-    });
+    document.addEventListener('DOMContentLoaded', fetchItems);
   </script>
 </body>
 </html>
