@@ -217,6 +217,13 @@ body{font-family:'Poppins',sans-serif;background:#e8f5e9;min-height:100vh;paddin
 .modal-content .save:hover{background:#388e3c;}
 .modal-content .cancel:hover{background:#bdbdbd;}
 
+/* Delete Modal */
+#deleteModal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:1000;animation:fadeIn 0.3s;}
+#deleteModal .modal-content{text-align:center;max-width:400px;}
+#deleteModal p{margin-top:10px;color:#555;}
+@keyframes fadeIn {from {opacity:0;} to {opacity:1;}}
+
+
 .back-arrow{position:fixed;top:25px;left:25px;width:45px;height:45px;
   border-radius:50%;background:white;color:#43a047;display:flex;align-items:center;justify-content:center;
   text-decoration:none;box-shadow:0 3px 10px rgba(0,0,0,0.2);}
@@ -278,6 +285,18 @@ body{font-family:'Poppins',sans-serif;background:#e8f5e9;min-height:100vh;paddin
   </div>
 </div>
 
+<!-- Delete Modal -->
+<div id="deleteModal">
+  <div class="modal-content">
+    <h3>Delete Item</h3>
+    <p>Are you sure you want to delete this item?</p>
+    <div style="display:flex;justify-content:space-between;margin-top:20px;">
+      <button class="save" id="confirmDeleteBtn" style="flex:1;margin-right:10px;">Delete</button>
+      <button class="cancel" onclick="closeDeleteModal()" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
 function openAddModal(){document.getElementById('addModal').style.display='flex';}
 function closeAddModal(){document.getElementById('addModal').style.display='none';}
@@ -331,10 +350,27 @@ document.getElementById('editForm').addEventListener('submit',e=>{
   .then(r=>r.text()).then(t=>{if(t==='updated'){closeEditModal();loadItems();}});
 });
 
+let deleteItemId = null;
+
 function deleteItem(id){
-  if(confirm("Are you sure you want to delete this item?"))
-    fetch(`items.php?action=delete&id=${id}`).then(()=>loadItems());
+  deleteItemId = id;
+  document.getElementById('deleteModal').style.display = 'flex';
 }
+
+function closeDeleteModal(){
+  deleteItemId = null;
+  document.getElementById('deleteModal').style.display = 'none';
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+  if(deleteItemId){
+    fetch(`items.php?action=delete&id=${deleteItemId}`)
+      .then(()=> {
+        loadItems();
+        closeDeleteModal();
+      });
+  }
+});
 </script>
 </body>
 </html>
