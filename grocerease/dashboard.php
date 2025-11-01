@@ -200,6 +200,7 @@ $recentStmt->close();
             </table>
           </div>
         </div>
+        
 
         <div class="panel small-panel">
           <div class="panel-head"><h4>Top List Summary</h4></div>
@@ -217,6 +218,10 @@ $recentStmt->close();
       </section>
     </main>
   </div>
+
+  <!-- 🔔 Centered Expiration Toast -->
+   <!-- Toast Container (top center) -->
+<div id="toastContainer"></div>
 
   <script>
     // Chart.js - simple waste vs total spent visualization
@@ -240,6 +245,118 @@ $recentStmt->close();
         }
       });
     }
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Detect if page was reloaded or newly opened
+  const navigationType = performance.getEntriesByType("navigation")[0]?.type;
+
+  // Show only on reload or first page load after login
+  if (navigationType === "reload" || !sessionStorage.getItem("loggedInOnce")) {
+    checkExpirations();
+    sessionStorage.setItem("loggedInOnce", "true");
+  }
+});
+
+
+function checkExpirations() {
+  fetch("items.php?action=check_expiring")
+    .then(res => res.json())
+    .then(items => {
+      if (!items || !items.length) return;
+
+      const shownExpired = JSON.parse(localStorage.getItem("shownExpired") || "[]");
+      const today = new Date().toISOString().split("T")[0];
+      const now = new Date();
+      const container = document.getElementById("toastContainer");
+      let updatedShownExpired = [...shownExpired];
+
+      // Reset container
+      container.innerHTML = "";
+
+      items.forEach(item => {
+        const expDate = new Date(item.expiration_date + "T00:00:00");
+        const diffDays = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+
+        const key = item.item_name + today;
+
+        // === EXPIRED ===
+        if (diffDays < 0) {
+          // Remove from shown list if it's not yet expired before
+          if (!shownExpired.includes(key)) {
+            const msg = `<strong>${escapeHtml(item.item_name)}</strong> expired on ${escapeHtml(item.expiration_date)}.`;
+            container.appendChild(createToast("red", msg, expiredIcon()));
+            updatedShownExpired.push(key);
+          }
+        }
+
+        // === EXPIRING SOON ===
+        else if (diffDays <= 3 && diffDays >= 0) {
+          // Show every reload to remind user
+          const dayWord = diffDays === 0 ? "today" : `in ${diffDays} day${diffDays > 1 ? "s" : ""}`;
+          const msg = `<strong>${escapeHtml(item.item_name)}</strong> will expire ${dayWord} (${escapeHtml(item.expiration_date)}).`;
+          container.appendChild(createToast("yellow", msg, warningIcon()));
+
+          // if it was marked expired before, remove it (reset status)
+          const expiredIndex = updatedShownExpired.indexOf(key);
+          if (expiredIndex !== -1) updatedShownExpired.splice(expiredIndex, 1);
+        }
+      });
+
+      localStorage.setItem("shownExpired", JSON.stringify(updatedShownExpired));
+    })
+    .catch(err => console.error("Toast fetch error:", err));
+}
+
+// ===== Toast builder =====
+function createToast(color, message, iconSVG) {
+  const toast = document.createElement("div");
+  toast.className = `expiry-toast ${color}`;
+  toast.innerHTML = `
+    <div class="toast-icon">${iconSVG}</div>
+    <div>${message}</div>
+  `;
+
+  document.getElementById("toastContainer").appendChild(toast);
+
+  // animate in
+  toast.style.animation = "toastIn 0.35s ease forwards";
+
+  setTimeout(() => {
+    toast.style.animation = "toastOut 0.35s ease forwards";
+    setTimeout(() => toast.remove(), 400);
+  }, 6000);
+
+  return toast;
+}
+
+// ===== SVGs =====
+function warningIcon() {
+  return `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M12 3L1 21h22L12 3z" stroke="#b45309" stroke-width="1.6"/>
+      <path d="M12 9v5m0 3h.01" stroke="#b45309" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  `;
+}
+function expiredIcon() {
+  return `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="#b91c1c" stroke-width="1.6"/>
+      <path d="M8 8l8 8m0-8l-8 8" stroke="#b91c1c" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  `;
+}
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+
   </script>
 </body>
 </html>
