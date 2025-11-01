@@ -224,14 +224,39 @@ body{font-family:'Poppins',sans-serif;background:#e8f5e9;min-height:100vh;paddin
 @keyframes fadeIn {from {opacity:0;} to {opacity:1;}}
 
 
-.back-arrow{position:fixed;top:25px;left:25px;width:45px;height:45px;
-  border-radius:50%;background:white;color:#43a047;display:flex;align-items:center;justify-content:center;
-  text-decoration:none;box-shadow:0 3px 10px rgba(0,0,0,0.2);}
-.back-arrow:hover{background:#e8f5e9;}
+.back-arrow{
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.back-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+.back-arrow:hover {
+  background: #e8f5e9;
+}
+
 </style>
 </head>
 <body>
-<a href="dashboard.php" class="back-arrow"><i class="fas fa-arrow-left"></i></a>
+<a href="dashboard.php" class="back-arrow" title="Back to Dashboard">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 18L9 12L15 6" stroke="#43a047" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</a>
+
 <div class="container">
   <div class="header">
     <h1>🛒 Grocery List Management</h1>
