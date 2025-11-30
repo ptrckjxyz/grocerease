@@ -248,12 +248,21 @@ $recentStmt->close();
   <script>
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Check if toasts have already been shown this session
+  // Check if this is a fresh page load (F5/Ctrl+R) or first visit
+  const isPageReload = performance.navigation.type === 1; // 1 = reload
+  const isFirstVisit = !sessionStorage.getItem('dashboardVisited');
+  
+  if (isPageReload || isFirstVisit) {
+    // Clear the toast flag on reload or first visit
+    sessionStorage.removeItem('expirationToastsShown');
+    sessionStorage.setItem('dashboardVisited', 'true');
+  }
+  
+  // Only show toasts if not already shown in this session
   if (!sessionStorage.getItem('expirationToastsShown')) {
     checkExpirations();
   }
 });
-
 
 function checkExpirations() {
   console.log("Checking expirations...");
